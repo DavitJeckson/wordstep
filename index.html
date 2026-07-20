@@ -1,0 +1,1546 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#f4f5f7">
+  <meta name="description" content="词阶：每天复习、学习、测验，进度保存在本机。">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <title>词阶 · 每日单词学习</title>
+  <style>
+    :root {
+      --bg: #f4f5f7;
+      --surface: #ffffff;
+      --surface-2: #f8f9fb;
+      --ink: #141827;
+      --muted: #697083;
+      --line: #e3e6eb;
+      --indigo: #4f46e5;
+      --indigo-dark: #3730a3;
+      --indigo-soft: #eef2ff;
+      --coral: #ff704d;
+      --coral-soft: #fff0eb;
+      --green: #158466;
+      --green-soft: #e7f7f1;
+      --red: #d93d55;
+      --red-soft: #fff0f2;
+      --shadow: 0 12px 30px rgba(28, 33, 48, .08), 0 2px 8px rgba(28, 33, 48, .05);
+      --radius: 20px;
+      font-family: Inter, "SF Pro Text", "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+      color-scheme: light;
+    }
+
+    * { box-sizing: border-box; }
+    html { background: var(--bg); }
+    body {
+      margin: 0;
+      min-width: 320px;
+      min-height: 100vh;
+      min-height: 100dvh;
+      background:
+        radial-gradient(circle at 50% -10%, rgba(79,70,229,.08), transparent 32rem),
+        var(--bg);
+      color: var(--ink);
+      -webkit-font-smoothing: antialiased;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    button, input, select { font: inherit; }
+    button { color: inherit; }
+    button:focus-visible, input:focus-visible, select:focus-visible {
+      outline: 3px solid rgba(79,70,229,.3);
+      outline-offset: 2px;
+    }
+
+    .app {
+      width: min(100%, 560px);
+      min-height: 100vh;
+      min-height: 100dvh;
+      margin: 0 auto;
+      background: rgba(255,255,255,.84);
+      box-shadow: 0 0 0 1px rgba(20,24,39,.04), 0 0 60px rgba(20,24,39,.08);
+      position: relative;
+    }
+
+    .header {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 10px;
+      min-height: 72px;
+      padding: max(14px, env(safe-area-inset-top)) 18px 12px;
+      background: rgba(255,255,255,.94);
+      border-bottom: 1px solid var(--line);
+      backdrop-filter: blur(16px);
+    }
+
+    .brand {
+      color: var(--indigo);
+      font-size: 25px;
+      line-height: 1;
+      font-weight: 800;
+      letter-spacing: -.04em;
+    }
+
+    .book-switch {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      min-width: 0;
+      height: 42px;
+      padding: 0 11px;
+      border: 0;
+      border-radius: 12px;
+      background: transparent;
+      cursor: pointer;
+    }
+    .book-switch:hover { background: var(--surface-2); }
+    .book-switch span {
+      overflow: hidden;
+      color: #353a49;
+      font-size: 14px;
+      font-weight: 650;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .streak {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      min-width: max-content;
+      color: #3d4251;
+      font-size: 13px;
+      font-weight: 650;
+    }
+    .streak b { color: var(--coral); font-size: 17px; }
+
+    main {
+      min-height: calc(100dvh - 72px);
+      padding: 22px 18px calc(92px + env(safe-area-inset-bottom));
+    }
+
+    .screen { animation: enter .18s ease-out both; }
+    @keyframes enter { from { opacity: .25; transform: translateY(5px); } }
+
+    .eyebrow {
+      margin: 0 0 5px;
+      color: var(--indigo);
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+    }
+    h1, h2, h3, p { margin-top: 0; }
+    h1 { margin-bottom: 6px; font-size: 28px; line-height: 1.2; letter-spacing: -.03em; }
+    h2 { margin-bottom: 6px; font-size: 20px; line-height: 1.3; }
+    .sub { color: var(--muted); font-size: 14px; line-height: 1.65; }
+
+    .today-head {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+    .today-number { display: flex; align-items: baseline; gap: 8px; }
+    .today-number strong { color: var(--indigo); font-size: 42px; line-height: 1; letter-spacing: -.04em; }
+    .today-number span { font-size: 21px; font-weight: 750; }
+    .completion { color: var(--muted); font-size: 13px; font-weight: 650; }
+
+    .progress-track {
+      height: 8px;
+      margin-bottom: 18px;
+      overflow: hidden;
+      border-radius: 99px;
+      background: #e8e9ee;
+    }
+    .progress-fill {
+      width: 0;
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, var(--indigo), #7067f4);
+      transition: width .3s ease-out;
+    }
+
+    .stage-rail {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      margin-bottom: 18px;
+      padding: 12px 10px;
+      border: 1px solid var(--line);
+      border-radius: 17px;
+      background: var(--surface);
+    }
+    .stage-item {
+      position: relative;
+      min-width: 0;
+      padding: 3px 8px;
+      text-align: center;
+    }
+    .stage-item + .stage-item { border-left: 1px solid var(--line); }
+    .stage-item small { display: block; margin-bottom: 3px; color: var(--muted); font-size: 11px; }
+    .stage-item b { font-size: 19px; }
+    .stage-item.active small, .stage-item.active b { color: var(--indigo); }
+    .stage-item.done::after {
+      content: "✓";
+      position: absolute;
+      top: -3px;
+      right: 5px;
+      color: var(--green);
+      font-size: 11px;
+      font-weight: 900;
+    }
+
+    .card {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--surface);
+      box-shadow: var(--shadow);
+    }
+    .dashboard-card { padding: 20px; }
+    .flow-row {
+      display: grid;
+      grid-template-columns: 42px 1fr auto;
+      align-items: center;
+      gap: 12px;
+      padding: 13px 0;
+      border-bottom: 1px solid var(--line);
+    }
+    .flow-row:last-of-type { border-bottom: 0; }
+    .flow-icon {
+      display: grid;
+      width: 42px;
+      height: 42px;
+      place-items: center;
+      border-radius: 13px;
+      background: var(--indigo-soft);
+      color: var(--indigo);
+      font-size: 18px;
+      font-weight: 800;
+    }
+    .flow-row:nth-child(3) .flow-icon { background: var(--coral-soft); color: var(--coral); }
+    .flow-row h3 { margin: 0 0 2px; font-size: 15px; }
+    .flow-row p { margin: 0; color: var(--muted); font-size: 12px; }
+    .flow-count { font-size: 22px; font-weight: 800; }
+
+    .primary, .secondary, .danger, .ghost {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 52px;
+      padding: 0 19px;
+      border-radius: 14px;
+      font-weight: 750;
+      cursor: pointer;
+      transition: transform .12s ease, background .12s ease, border-color .12s ease;
+    }
+    .primary { border: 1px solid var(--indigo); background: var(--indigo); color: #fff; box-shadow: 0 8px 18px rgba(79,70,229,.2); }
+    .primary:hover { background: var(--indigo-dark); }
+    .primary:active, .secondary:active, .danger:active, .ghost:active { transform: scale(.98); }
+    .secondary { border: 1.5px solid var(--indigo); background: #fff; color: var(--indigo); }
+    .secondary:hover { background: var(--indigo-soft); }
+    .ghost { border: 1px solid var(--line); background: var(--surface); color: #454a5a; }
+    .danger { border: 1px solid #f2bdc5; background: #fff; color: var(--red); }
+    .block { width: 100%; }
+    .start-button { margin-top: 17px; }
+    button:disabled { cursor: default; opacity: .55; transform: none !important; }
+
+    .study-card { overflow: hidden; }
+    .study-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 14px;
+      padding: 24px 22px 18px;
+    }
+    .word {
+      margin: 0;
+      overflow-wrap: anywhere;
+      font-size: clamp(36px, 11vw, 54px);
+      line-height: 1.05;
+      letter-spacing: -.045em;
+    }
+    .phonetic { margin: 8px 0 0; color: var(--muted); font-family: ui-serif, Georgia, serif; font-size: 18px; }
+    .audio-btn {
+      flex: 0 0 auto;
+      display: grid;
+      width: 54px;
+      height: 54px;
+      place-items: center;
+      border: 0;
+      border-radius: 50%;
+      background: var(--indigo);
+      color: #fff;
+      cursor: pointer;
+      box-shadow: 0 0 0 8px var(--indigo-soft);
+    }
+    .audio-btn.playing { animation: pulse .8s ease-in-out infinite alternate; }
+    @keyframes pulse { to { box-shadow: 0 0 0 13px rgba(79,70,229,.08); } }
+    .word-detail { padding: 0 22px 22px; }
+    .meaning {
+      margin: 0;
+      padding: 16px 0;
+      border-top: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+      font-size: 17px;
+      font-weight: 650;
+      line-height: 1.6;
+    }
+    .meaning .pos { margin-right: 7px; color: var(--indigo); font-weight: 850; }
+    .analysis { margin: 13px 0 0; color: #4b5161; font-size: 14px; line-height: 1.7; }
+    .reveal-placeholder {
+      display: grid;
+      min-height: 138px;
+      place-items: center;
+      padding: 24px;
+      border-top: 1px solid var(--line);
+      color: var(--muted);
+      text-align: center;
+    }
+
+    details.info-section { border-top: 1px solid var(--line); }
+    details.info-section summary {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      min-height: 50px;
+      padding: 0 22px;
+      list-style: none;
+      color: #333847;
+      font-size: 14px;
+      font-weight: 750;
+      cursor: pointer;
+    }
+    details.info-section summary::-webkit-details-marker { display: none; }
+    details.info-section summary::after { content: "+"; color: var(--indigo); font-size: 20px; }
+    details.info-section[open] summary::after { content: "−"; }
+    .detail-body { padding: 0 22px 18px; }
+    .example { margin-bottom: 13px; padding-left: 12px; border-left: 3px solid #cfd2ff; }
+    .example:last-child { margin-bottom: 0; }
+    .example p { margin: 0 0 4px; font-size: 14px; line-height: 1.55; }
+    .example small { color: var(--muted); line-height: 1.5; }
+    .phrase-item { margin-bottom: 11px; padding: 11px 12px; border-left: 3px solid var(--coral); border-radius: 0 10px 10px 0; background: var(--coral-soft); }
+    .phrase-item:last-child { margin-bottom: 0; }
+    .phrase-item p { margin: 0 0 4px; color: #303544; font-size: 14px; font-weight: 750; line-height: 1.5; }
+    .phrase-item small { color: #6a554f; line-height: 1.55; }
+    .etymology-card { padding: 13px 14px; border-radius: 12px; background: var(--indigo-soft); color: #42475a; font-size: 13px; line-height: 1.7; }
+    .etymology-card p { margin: 0 0 8px; }
+    .etymology-card p:last-child { margin-bottom: 0; }
+    .etymology-card b { color: var(--indigo-dark); }
+    .word-family { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 9px; }
+    .family-word { padding: 6px 9px; border-radius: 8px; background: #fff; color: #454a59; }
+    .family-word b { color: var(--indigo); }
+    .chip-list { display: flex; flex-wrap: wrap; gap: 8px; }
+    .chip { padding: 7px 10px; border-radius: 9px; background: var(--surface-2); color: #444a5a; font-size: 13px; }
+    .chip b { color: var(--indigo); }
+
+    .actions {
+      position: sticky;
+      bottom: calc(72px + env(safe-area-inset-bottom));
+      z-index: 10;
+      display: grid;
+      grid-template-columns: minmax(0, .82fr) minmax(0, 1.18fr);
+      gap: 10px;
+      margin-top: 14px;
+      padding: 10px 0;
+      background: linear-gradient(transparent, rgba(244,245,247,.96) 25%);
+    }
+    .actions.single { grid-template-columns: 1fr; }
+
+    .quiz-title { margin-bottom: 16px; text-align: center; }
+    .quiz-title .word { font-size: clamp(38px, 12vw, 52px); }
+    .quiz-title p { margin: 8px 0 0; color: var(--muted); }
+    .options { display: grid; gap: 10px; }
+    .option {
+      min-height: 58px;
+      padding: 12px 15px;
+      border: 1.5px solid var(--line);
+      border-radius: 14px;
+      background: #fff;
+      color: #303544;
+      font-size: 15px;
+      font-weight: 620;
+      line-height: 1.45;
+      text-align: left;
+      cursor: pointer;
+    }
+    .option:hover { border-color: #b8b4f6; background: #fafaff; }
+    .option.correct { border-color: var(--green); background: var(--green-soft); color: #0e654e; }
+    .option.wrong { border-color: var(--red); background: var(--red-soft); color: #a7273b; }
+    .answer-note {
+      margin-top: 12px;
+      padding: 12px 14px;
+      border-radius: 12px;
+      background: var(--surface-2);
+      color: #454a59;
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .summary-card { overflow: hidden; padding: 24px; text-align: center; }
+    .summary-mark {
+      display: grid;
+      width: 68px;
+      height: 68px;
+      margin: 0 auto 14px;
+      place-items: center;
+      border-radius: 22px;
+      background: var(--green-soft);
+      color: var(--green);
+      font-size: 33px;
+      font-weight: 900;
+    }
+    .score-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 20px 0; }
+    .score-item { padding: 13px 5px; border-radius: 13px; background: var(--surface-2); }
+    .score-item b { display: block; margin-bottom: 3px; font-size: 21px; }
+    .score-item small { color: var(--muted); }
+
+    .section-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; margin-bottom: 16px; }
+    .section-head h1 { margin: 0; }
+    .stat-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 18px; }
+    .stat-card { padding: 18px; border: 1px solid var(--line); border-radius: 16px; background: #fff; }
+    .stat-card b { display: block; margin-bottom: 4px; font-size: 28px; }
+    .stat-card small { color: var(--muted); }
+    .chart-card { padding: 19px 16px 14px; }
+    .chart-card h2 { font-size: 16px; }
+    .week-chart { display: grid; grid-template-columns: repeat(7, 1fr); align-items: end; gap: 8px; height: 145px; margin-top: 16px; }
+    .day-bar { display: grid; grid-template-rows: 1fr auto; align-items: end; gap: 7px; height: 100%; text-align: center; }
+    .bar-wrap { display: flex; align-items: end; justify-content: center; height: 100%; border-radius: 8px; background: var(--surface-2); }
+    .bar { width: 100%; min-height: 4px; border-radius: 8px; background: var(--indigo); transition: height .3s ease; }
+    .day-bar small { color: var(--muted); font-size: 10px; }
+
+    .review-controls {
+      position: sticky;
+      top: 72px;
+      z-index: 8;
+      margin: 0 -4px 14px;
+      padding: 8px 4px 10px;
+      background: rgba(244,245,247,.94);
+      backdrop-filter: blur(12px);
+    }
+    .review-tabs {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 4px;
+      padding: 4px;
+      border: 1px solid var(--line);
+      border-radius: 13px;
+      background: #fff;
+    }
+    .review-filter {
+      min-height: 40px;
+      border: 0;
+      border-radius: 9px;
+      background: transparent;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 750;
+      cursor: pointer;
+    }
+    .review-filter.active { background: var(--indigo); color: #fff; }
+    .review-search {
+      width: 100%;
+      min-height: 46px;
+      margin-top: 8px;
+      padding: 0 14px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: #fff;
+      color: var(--ink);
+    }
+    .review-search::placeholder { color: #9297a5; }
+    .review-list { display: grid; gap: 10px; }
+    .review-card {
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: #fff;
+      box-shadow: 0 4px 12px rgba(28,33,48,.04);
+    }
+    .review-card summary {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 12px;
+      min-height: 80px;
+      padding: 14px 15px;
+      list-style: none;
+      cursor: pointer;
+    }
+    .review-card summary::-webkit-details-marker { display: none; }
+    .review-word { display: flex; align-items: baseline; gap: 9px; min-width: 0; }
+    .review-word b { overflow-wrap: anywhere; font-size: 22px; letter-spacing: -.02em; }
+    .review-word span { color: var(--muted); font-family: ui-serif, Georgia, serif; font-size: 13px; }
+    .review-meaning { margin: 4px 0 0; color: #4f5564; font-size: 13px; line-height: 1.45; }
+    .review-meta { display: grid; justify-items: end; gap: 7px; color: var(--muted); font-size: 11px; }
+    .mini-audio {
+      display: grid;
+      width: 34px;
+      height: 34px;
+      place-items: center;
+      border: 0;
+      border-radius: 50%;
+      background: var(--indigo-soft);
+      color: var(--indigo);
+      cursor: pointer;
+    }
+    .review-detail { padding: 0 15px 16px; border-top: 1px solid var(--line); }
+    .review-detail .analysis { margin-bottom: 14px; }
+    .review-result-count { color: var(--muted); font-size: 12px; font-weight: 650; }
+
+    .quiz-kind {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 10px;
+      padding: 6px 9px;
+      border-radius: 9px;
+      background: var(--coral-soft);
+      color: #b3442a;
+      font-size: 11px;
+      font-weight: 850;
+      letter-spacing: .06em;
+    }
+    .spelling-card { padding: 22px; text-align: center; }
+    .spelling-meaning {
+      margin: 5px 0 7px;
+      font-size: clamp(22px, 7vw, 30px);
+      line-height: 1.4;
+      font-weight: 780;
+      letter-spacing: -.02em;
+    }
+    .spelling-hint { color: var(--muted); font-size: 13px; }
+    .spelling-form { margin-top: 19px; }
+    .spelling-input {
+      width: 100%;
+      min-height: 58px;
+      padding: 0 16px;
+      border: 2px solid #cfd2dc;
+      border-radius: 14px;
+      background: #fff;
+      color: var(--ink);
+      font-size: 24px;
+      font-weight: 720;
+      letter-spacing: .04em;
+      text-align: center;
+      text-transform: lowercase;
+    }
+    .spelling-input:focus { border-color: var(--indigo); outline: 3px solid rgba(79,70,229,.15); }
+    .spelling-input.correct { border-color: var(--green); background: var(--green-soft); color: #0e654e; }
+    .spelling-input.wrong { border-color: var(--red); background: var(--red-soft); color: #a7273b; }
+    .spelling-answer {
+      margin-top: 12px;
+      padding: 12px;
+      border-radius: 12px;
+      background: var(--surface-2);
+      font-size: 14px;
+      line-height: 1.55;
+    }
+    .spelling-answer b { color: var(--indigo); font-size: 19px; letter-spacing: .03em; }
+
+    .plan-card { margin-bottom: 13px; padding: 19px; }
+    .plan-row { display: flex; align-items: center; justify-content: space-between; gap: 15px; }
+    .plan-row + .plan-row { margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--line); }
+    .plan-row h3 { margin: 0 0 3px; font-size: 15px; }
+    .plan-row p { margin: 0; color: var(--muted); font-size: 12px; line-height: 1.45; }
+    .stepper { display: grid; grid-template-columns: 40px 46px 40px; align-items: center; overflow: hidden; border: 1px solid var(--line); border-radius: 12px; }
+    .stepper button { height: 40px; border: 0; background: var(--surface-2); color: var(--indigo); font-size: 20px; cursor: pointer; }
+    .stepper b { text-align: center; }
+    .plan-meter { margin-top: 16px; }
+    .plan-meter .progress-track { margin: 8px 0 0; }
+    .small-button { min-height: 42px; padding: 0 13px; border-radius: 11px; font-size: 13px; }
+
+    .bottom-nav {
+      position: fixed;
+      right: 0;
+      bottom: 0;
+      left: 0;
+      z-index: 30;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      width: min(100%, 560px);
+      min-height: calc(66px + env(safe-area-inset-bottom));
+      margin: 0 auto;
+      padding: 7px 12px env(safe-area-inset-bottom);
+      border-top: 1px solid var(--line);
+      background: rgba(255,255,255,.96);
+      backdrop-filter: blur(16px);
+    }
+    .nav-btn {
+      display: grid;
+      grid-template-rows: 25px 16px;
+      place-items: center;
+      border: 0;
+      border-radius: 12px;
+      background: transparent;
+      color: #7a7f8d;
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .nav-btn svg { width: 21px; height: 21px; }
+    .nav-btn.active { background: var(--indigo-soft); color: var(--indigo); }
+
+    dialog {
+      width: min(calc(100% - 24px), 520px);
+      max-height: min(82dvh, 720px);
+      margin: auto auto 0;
+      padding: 0;
+      overflow: hidden;
+      border: 0;
+      border-radius: 22px 22px 0 0;
+      background: #fff;
+      color: var(--ink);
+      box-shadow: 0 -18px 50px rgba(20,24,39,.2);
+    }
+    dialog::backdrop { background: rgba(20,24,39,.42); backdrop-filter: blur(2px); }
+    .dialog-head { display: flex; align-items: center; justify-content: space-between; padding: 19px 20px 14px; border-bottom: 1px solid var(--line); }
+    .dialog-head h2 { margin: 0; }
+    .close-btn { display: grid; width: 38px; height: 38px; place-items: center; border: 0; border-radius: 50%; background: var(--surface-2); cursor: pointer; }
+    .dialog-body { max-height: calc(82dvh - 145px); overflow: auto; padding: 14px 18px 22px; }
+    .book-item { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 12px; margin-bottom: 9px; padding: 14px; border: 1.5px solid var(--line); border-radius: 14px; cursor: pointer; }
+    .book-item.active { border-color: var(--indigo); background: var(--indigo-soft); }
+    .book-item h3 { margin: 0 0 3px; font-size: 15px; }
+    .book-item p { margin: 0; color: var(--muted); font-size: 12px; }
+    .check { color: var(--indigo); font-size: 18px; font-weight: 900; }
+    .dialog-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; padding-top: 8px; }
+    .format-note { margin: 14px 0 0; color: var(--muted); font-size: 12px; line-height: 1.6; }
+
+    .toast {
+      position: fixed;
+      right: 18px;
+      bottom: calc(82px + env(safe-area-inset-bottom));
+      left: 18px;
+      z-index: 50;
+      max-width: 520px;
+      margin: auto;
+      padding: 13px 15px;
+      border-radius: 12px;
+      background: #202433;
+      color: #fff;
+      font-size: 13px;
+      line-height: 1.45;
+      box-shadow: var(--shadow);
+      animation: toast-in .18s ease-out both;
+    }
+    @keyframes toast-in { from { opacity: 0; transform: translateY(8px); } }
+    .hidden { display: none !important; }
+    .empty { padding: 28px 16px; color: var(--muted); text-align: center; }
+
+    @media (min-width: 620px) {
+      body { padding: 18px 0; }
+      .app { min-height: calc(100dvh - 36px); border-radius: 24px; overflow: hidden; }
+      .bottom-nav { bottom: 18px; border-radius: 0 0 24px 24px; }
+      dialog { margin-bottom: max(18px, calc((100dvh - 760px) / 2)); border-radius: 22px; }
+    }
+    @media (max-width: 380px) {
+      .header { padding-right: 13px; padding-left: 13px; }
+      main { padding-right: 13px; padding-left: 13px; }
+      .streak span { display: none; }
+      .book-switch { padding: 0 5px; }
+      .stage-item { padding-inline: 4px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header class="header">
+      <div class="brand" aria-label="词阶">词阶</div>
+      <button class="book-switch" id="bookSwitch" type="button" aria-label="切换单词书">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 4.5A2.5 2.5 0 0 1 7.5 2H19v16H7.5A2.5 2.5 0 0 0 5 20.5v-16Z" stroke="currentColor" stroke-width="1.8"/><path d="M5 20.5A1.5 1.5 0 0 0 6.5 22H19v-4" stroke="currentColor" stroke-width="1.8"/></svg>
+        <span id="bookName">载入中</span>
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m7 9 5 5 5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      </button>
+      <div class="streak" aria-label="连续学习天数"><span>🔥 连续</span><b id="streakCount">0</b><span>天</span></div>
+    </header>
+
+    <main id="main" aria-live="polite"></main>
+
+    <nav class="bottom-nav" aria-label="主导航">
+      <button class="nav-btn active" data-tab="today" type="button">
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 8h16M7 3v3m10-3v3M6 5h12a2 2 0 0 1 2 2v13H4V7a2 2 0 0 1 2-2Z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="m8.5 14 2.2 2.2 4.8-5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span>今日</span>
+      </button>
+      <button class="nav-btn" data-tab="review" type="button">
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H19v15H6.5A2.5 2.5 0 0 0 4 20.5v-15Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M4 20.5A1.5 1.5 0 0 0 5.5 22H19v-4M8 8h7m-7 4h5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+        <span>回顾</span>
+      </button>
+      <button class="nav-btn" data-tab="stats" type="button">
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 20v-7h4v7H5Zm5 0V4h4v16h-4Zm5 0v-11h4v11h-4Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>
+        <span>统计</span>
+      </button>
+      <button class="nav-btn" data-tab="plan" type="button">
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 3a9 9 0 1 0 9 9" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M12 7v5l3 2M16 3h5v5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span>计划</span>
+      </button>
+    </nav>
+  </div>
+
+  <dialog id="bookDialog">
+    <div class="dialog-head"><h2>切换单词书</h2><button class="close-btn" type="button" aria-label="关闭" data-close-dialog>✕</button></div>
+    <div class="dialog-body">
+      <div id="bookList"></div>
+      <div class="dialog-actions">
+        <button class="secondary small-button" type="button" id="importButton">导入 JSON</button>
+        <button class="ghost small-button" type="button" id="templateButton">下载格式样例</button>
+      </div>
+      <input class="hidden" id="fileInput" type="file" accept="application/json,.json">
+      <p class="format-note">音频字段支持纯 Base64 MP3 或 <code>data:audio/mpeg;base64,...</code>。数据只保存在当前浏览器的 IndexedDB 中。</p>
+    </div>
+  </dialog>
+  <div class="toast hidden" id="toast" role="status"></div>
+
+  <script>
+  (() => {
+    "use strict";
+
+    const DB_NAME = "wordstep-db";
+    const DB_VERSION = 1;
+    const STORES = ["books", "meta", "progress", "sessions", "activity"];
+    const $ = (selector, root = document) => root.querySelector(selector);
+    const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
+    const main = $("#main");
+    const bookDialog = $("#bookDialog");
+    const state = { db: null, books: [], book: null, settings: null, session: null, tab: "today", flowOpen: false, revealed: false, quizAnswered: false, selectedAnswer: null, reviewFilter: "today", reviewQuery: "" };
+
+    const BUILTIN_BOOKS = [
+      {
+        id: "cet6-focus", name: "大学英语进阶", description: "高频抽象词与阅读核心词", builtin: true,
+        words: [
+          { id: "resilient", word: "resilient", phonetic: "/rɪˈzɪliənt/", audioBase64: "", partOfSpeech: "adj.", meaning: "有韧性的；能迅速恢复的", analysis: "来自拉丁语 resilire（跳回）。常用于描述人、组织、系统在压力或失败后恢复的能力。", examples: [
+            { en: "A resilient system learns from failure.", zh: "有韧性的系统会从失败中学习。" },
+            { en: "Children are often more resilient than adults expect.", zh: "孩子往往比成年人想象的更有适应力。" },
+            { en: "The local economy proved resilient during the crisis.", zh: "当地经济在危机中展现出很强的韧性。" }
+          ], synonyms: [{ word: "tough", note: "强调坚韧" }, { word: "robust", note: "强调强健稳定" }], confusables: [{ word: "resistant", note: "抵抗的，不等于恢复力强" }, { word: "reliant", note: "依赖的" }] },
+          { id: "subtle", word: "subtle", phonetic: "/ˈsʌtl/", audioBase64: "", partOfSpeech: "adj.", meaning: "微妙的；不易察觉的；巧妙的", analysis: "字母 b 不发音。常修饰 difference、change、signal、flavor 等需要仔细感知的事物。", examples: [
+            { en: "There is a subtle difference between the two proposals.", zh: "这两项提议之间存在微妙差别。" },
+            { en: "Her tone carried a subtle warning.", zh: "她的语气带着不易察觉的警告。" },
+            { en: "The sauce has a subtle lemon flavor.", zh: "这种酱汁带有淡淡的柠檬味。" }
+          ], synonyms: [{ word: "nuanced", note: "细致入微的" }, { word: "delicate", note: "细微精致的" }], confusables: [{ word: "subtitle", note: "字幕" }, { word: "settle", note: "解决；定居" }] },
+          { id: "coherent", word: "coherent", phonetic: "/koʊˈhɪrənt/", audioBase64: "", partOfSpeech: "adj.", meaning: "连贯的；条理清楚的；一致的", analysis: "co-（共同）+ her（黏附）+ -ent，字面含义是各部分黏合在一起。", examples: [
+            { en: "The report presents a coherent argument.", zh: "这份报告提出了条理清楚的论证。" },
+            { en: "She was too tired to speak coherently.", zh: "她累得无法连贯地说话。" },
+            { en: "We need a coherent long-term strategy.", zh: "我们需要一套一致的长期战略。" }
+          ], synonyms: [{ word: "logical", note: "合乎逻辑的" }, { word: "consistent", note: "前后一致的" }], confusables: [{ word: "cohesive", note: "强调凝聚成整体" }, { word: "inherent", note: "固有的" }] },
+          { id: "ambiguous", word: "ambiguous", phonetic: "/æmˈbɪɡjuəs/", audioBase64: "", partOfSpeech: "adj.", meaning: "模棱两可的；含义不明确的", analysis: "ambi- 表示两边，暗示一句话可朝两个方向理解。", examples: [
+            { en: "The wording of the rule is ambiguous.", zh: "这条规则的措辞含义不明确。" },
+            { en: "His reply was deliberately ambiguous.", zh: "他的回答故意模棱两可。" },
+            { en: "The ending leaves the character's fate ambiguous.", zh: "结局没有明确交代这个角色的命运。" }
+          ], synonyms: [{ word: "unclear", note: "不清楚的" }, { word: "equivocal", note: "模棱两可的" }], confusables: [{ word: "ambitious", note: "有雄心的" }, { word: "anonymous", note: "匿名的" }] },
+          { id: "deteriorate", word: "deteriorate", phonetic: "/dɪˈtɪriəreɪt/", audioBase64: "", partOfSpeech: "v.", meaning: "恶化；退化；变坏", analysis: "多作不及物动词，常用于 health、relations、conditions、quality 等逐步变差。", examples: [
+            { en: "Weather conditions deteriorated rapidly.", zh: "天气状况迅速恶化。" },
+            { en: "Their relationship began to deteriorate.", zh: "他们的关系开始恶化。" },
+            { en: "The material deteriorates when exposed to sunlight.", zh: "这种材料暴露在阳光下会退化。" }
+          ], synonyms: [{ word: "worsen", note: "变糟" }, { word: "decline", note: "衰退" }], confusables: [{ word: "determine", note: "决定；确定" }, { word: "deterrent", note: "威慑物" }] },
+          { id: "prevalent", word: "prevalent", phonetic: "/ˈprevələnt/", audioBase64: "", partOfSpeech: "adj.", meaning: "普遍存在的；盛行的", analysis: "常见搭配 prevalent among/in，强调某种现象在群体或地区中广泛存在。", examples: [
+            { en: "This belief is prevalent among young adults.", zh: "这种观念在年轻成年人中很普遍。" },
+            { en: "The disease is more prevalent in urban areas.", zh: "这种疾病在城市地区更为常见。" },
+            { en: "Remote work has become increasingly prevalent.", zh: "远程办公已经变得越来越普遍。" }
+          ], synonyms: [{ word: "widespread", note: "广泛的" }, { word: "common", note: "常见的" }], confusables: [{ word: "relevant", note: "相关的" }, { word: "prevail", note: "盛行；获胜" }] },
+          { id: "scrutinize", word: "scrutinize", phonetic: "/ˈskruːtənaɪz/", audioBase64: "", partOfSpeech: "v.", meaning: "仔细检查；详细审查", analysis: "比 examine 更强调带着怀疑或寻找问题的态度逐项细看。", examples: [
+            { en: "Investors scrutinized the company's financial statements.", zh: "投资者仔细审查了公司的财务报表。" },
+            { en: "Every claim should be carefully scrutinized.", zh: "每项主张都应该受到仔细审查。" },
+            { en: "She scrutinized his face for signs of doubt.", zh: "她仔细观察他的脸，寻找怀疑的迹象。" }
+          ], synonyms: [{ word: "inspect", note: "检查" }, { word: "examine", note: "审视" }], confusables: [{ word: "summarize", note: "总结" }, { word: "standardize", note: "标准化" }] },
+          { id: "inevitable", word: "inevitable", phonetic: "/ɪnˈevɪtəbəl/", audioBase64: "", partOfSpeech: "adj.", meaning: "不可避免的；必然发生的", analysis: "in-（不）+ evitable（可避免的）。常见结构 it is inevitable that...。", examples: [
+            { en: "Some degree of uncertainty is inevitable.", zh: "一定程度的不确定性不可避免。" },
+            { en: "It was inevitable that costs would rise.", zh: "成本上涨是不可避免的。" },
+            { en: "Change is not only possible but inevitable.", zh: "变化不仅可能发生，而且必然发生。" }
+          ], synonyms: [{ word: "unavoidable", note: "无法避免的" }, { word: "certain", note: "必然的" }], confusables: [{ word: "invaluable", note: "极宝贵的" }, { word: "invisible", note: "看不见的" }] }
+        ]
+      },
+      {
+        id: "business-core", name: "商务英语核心", description: "会议、产品与管理高频词", builtin: true,
+        words: [
+          { id: "leverage", word: "leverage", phonetic: "/ˈlevərɪdʒ/", audioBase64: "", partOfSpeech: "v./n.", meaning: "充分利用；杠杆作用", analysis: "商务语境中常作动词，表示利用已有资源获得更大效果。", examples: [
+            { en: "We can leverage the platform to reach new customers.", zh: "我们可以利用这个平台触达新客户。" },
+            { en: "The team leveraged its technical expertise.", zh: "团队充分利用了自身的技术专长。" },
+            { en: "Debt increases financial leverage.", zh: "债务会提高财务杠杆。" }
+          ], synonyms: [{ word: "utilize", note: "利用" }, { word: "capitalize on", note: "善用机会" }], confusables: [{ word: "coverage", note: "覆盖；保险范围" }, { word: "average", note: "平均的" }] },
+          { id: "viable", word: "viable", phonetic: "/ˈvaɪəbəl/", audioBase64: "", partOfSpeech: "adj.", meaning: "可行的；能够成功的", analysis: "比 possible 更强调方案在成本、资源和现实条件下能够存活并成功。", examples: [
+            { en: "We need a commercially viable solution.", zh: "我们需要一个商业上可行的解决方案。" },
+            { en: "The plan is no longer financially viable.", zh: "这项计划在财务上已不可行。" },
+            { en: "Solar power is a viable alternative.", zh: "太阳能是一种可行的替代方案。" }
+          ], synonyms: [{ word: "feasible", note: "可实施的" }, { word: "workable", note: "行得通的" }], confusables: [{ word: "visible", note: "可见的" }, { word: "vital", note: "至关重要的" }] },
+          { id: "align", word: "align", phonetic: "/əˈlaɪn/", audioBase64: "", partOfSpeech: "v.", meaning: "使一致；对齐；协调", analysis: "管理语境常用 align A with B，指目标、资源或行动保持一致。", examples: [
+            { en: "The project must align with our strategy.", zh: "这个项目必须与我们的战略一致。" },
+            { en: "We need to align incentives across teams.", zh: "我们需要协调各团队的激励机制。" },
+            { en: "Please align the text to the left.", zh: "请把文字左对齐。" }
+          ], synonyms: [{ word: "coordinate", note: "协调" }, { word: "match", note: "匹配" }], confusables: [{ word: "assign", note: "分配" }, { word: "alien", note: "陌生的；外星人" }] },
+          { id: "constraint", word: "constraint", phonetic: "/kənˈstreɪnt/", audioBase64: "", partOfSpeech: "n.", meaning: "限制条件；约束", analysis: "强调限制选择空间的条件，例如预算、时间、法规或算力。", examples: [
+            { en: "Time is our biggest constraint.", zh: "时间是我们最大的限制条件。" },
+            { en: "The design works within strict budget constraints.", zh: "该设计在严格的预算约束内可行。" },
+            { en: "Supply constraints delayed production.", zh: "供应限制导致生产延误。" }
+          ], synonyms: [{ word: "restriction", note: "限制" }, { word: "limitation", note: "局限" }], confusables: [{ word: "construct", note: "建造" }, { word: "contrast", note: "对比" }] },
+          { id: "incentive", word: "incentive", phonetic: "/ɪnˈsentɪv/", audioBase64: "", partOfSpeech: "n.", meaning: "激励；刺激；鼓励因素", analysis: "既可指奖金等外部奖励，也可指促使某人行动的利益或动机。", examples: [
+            { en: "The bonus gives employees an incentive to improve.", zh: "奖金能激励员工改进表现。" },
+            { en: "There is little incentive to take unnecessary risks.", zh: "人们没有多少动力去承担不必要的风险。" },
+            { en: "Tax incentives attracted new investment.", zh: "税收优惠吸引了新的投资。" }
+          ], synonyms: [{ word: "motivation", note: "动机" }, { word: "stimulus", note: "刺激因素" }], confusables: [{ word: "intensive", note: "密集的" }, { word: "initiative", note: "主动性；倡议" }] },
+          { id: "scalable", word: "scalable", phonetic: "/ˈskeɪləbəl/", audioBase64: "", partOfSpeech: "adj.", meaning: "可扩展的；能规模化的", analysis: "系统、流程或商业模式在用户量增长时仍能维持效率和质量。", examples: [
+            { en: "The service needs a scalable architecture.", zh: "这项服务需要可扩展的架构。" },
+            { en: "They are looking for a scalable business model.", zh: "他们正在寻找能够规模化的商业模式。" },
+            { en: "Manual review is accurate but not scalable.", zh: "人工审核很准确，但难以规模化。" }
+          ], synonyms: [{ word: "expandable", note: "可扩展的" }, { word: "growth-ready", note: "可支持增长的" }], confusables: [{ word: "saleable", note: "适销的" }, { word: "stable", note: "稳定的" }] }
+        ]
+      }
+    ];
+
+    const BUNDLED_BOOKS = [
+      { id: "n2607", version: "2026.07.20.1", url: "./n2607.json" }
+    ];
+
+    function openDB() {
+      return new Promise((resolve, reject) => {
+        const request = indexedDB.open(DB_NAME, DB_VERSION);
+        request.onupgradeneeded = () => {
+          const db = request.result;
+          if (!db.objectStoreNames.contains("books")) db.createObjectStore("books", { keyPath: "id" });
+          if (!db.objectStoreNames.contains("meta")) db.createObjectStore("meta", { keyPath: "key" });
+          if (!db.objectStoreNames.contains("progress")) db.createObjectStore("progress", { keyPath: "key" });
+          if (!db.objectStoreNames.contains("sessions")) db.createObjectStore("sessions", { keyPath: "id" });
+          if (!db.objectStoreNames.contains("activity")) db.createObjectStore("activity", { keyPath: "id" });
+        };
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => reject(request.error);
+      });
+    }
+
+    function dbRequest(storeName, mode, action) {
+      return new Promise((resolve, reject) => {
+        const tx = state.db.transaction(storeName, mode);
+        const store = tx.objectStore(storeName);
+        let request;
+        try { request = action(store); } catch (error) { reject(error); return; }
+        if (request) {
+          request.onsuccess = () => resolve(request.result);
+          request.onerror = () => reject(request.error);
+        } else {
+          tx.oncomplete = () => resolve();
+        }
+        tx.onerror = () => reject(tx.error);
+      });
+    }
+    const get = (store, key) => dbRequest(store, "readonly", s => s.get(key));
+    const getAll = store => dbRequest(store, "readonly", s => s.getAll());
+    const put = (store, value) => dbRequest(store, "readwrite", s => s.put(value));
+    const remove = (store, key) => dbRequest(store, "readwrite", s => s.delete(key));
+
+    function localDate(offset = 0) {
+      const d = new Date();
+      d.setHours(12, 0, 0, 0);
+      d.setDate(d.getDate() + offset);
+      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+    }
+    function dateLabel(iso) {
+      const [y, m, d] = iso.split("-").map(Number);
+      return new Intl.DateTimeFormat("zh-CN", { month: "numeric", day: "numeric" }).format(new Date(y, m - 1, d));
+    }
+    function esc(value) {
+      return String(value ?? "").replace(/[&<>'"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" })[c]);
+    }
+    function shuffle(items) {
+      const a = [...items];
+      for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; }
+      return a;
+    }
+    function toast(message) {
+      const el = $("#toast");
+      el.textContent = message;
+      el.classList.remove("hidden");
+      clearTimeout(toast.timer);
+      toast.timer = setTimeout(() => el.classList.add("hidden"), 2600);
+    }
+
+    async function ensureBundledBooks() {
+      for (const source of BUNDLED_BOOKS) {
+        const existing = await get("books", source.id);
+        if (existing?.version === source.version) continue;
+        try {
+          const response = await fetch(source.url, { cache: "no-cache" });
+          if (!response.ok) throw new Error(`HTTP ${response.status}`);
+          const book = await response.json();
+          if (book.id !== source.id || !Array.isArray(book.words) || !book.words.length) {
+            throw new Error("词书格式无效");
+          }
+          book.version = source.version;
+          book.builtin = true;
+          await put("books", book);
+        } catch (error) {
+          console.warn(`无法载入内置词书 ${source.id}`, error);
+        }
+      }
+    }
+
+    async function init() {
+      try {
+        state.db = await openDB();
+        const books = await getAll("books");
+        if (!books.length) for (const book of BUILTIN_BOOKS) await put("books", book);
+        await ensureBundledBooks();
+        state.books = await getAll("books");
+        state.settings = await get("meta", "settings");
+        if (!state.settings) {
+          state.settings = { key: "settings", activeBookId: state.books[0].id, dailyNew: 20, createdAt: localDate() };
+          await put("meta", state.settings);
+        }
+        state.book = state.books.find(b => b.id === state.settings.activeBookId) || state.books[0];
+        state.settings.activeBookId = state.book.id;
+        await put("meta", state.settings);
+        state.session = await getSession();
+        bindStaticEvents();
+        await refreshHeader();
+        render();
+      } catch (error) {
+        console.error(error);
+        main.innerHTML = `<section class="screen"><div class="card empty"><h2>无法启动本地数据库</h2><p>请确认浏览器允许 IndexedDB，或换用非隐私浏览模式。</p></div></section>`;
+      }
+    }
+
+    function bindStaticEvents() {
+      $("#bookSwitch").addEventListener("click", openBooks);
+      $("[data-close-dialog]").addEventListener("click", () => bookDialog.close());
+      $("#importButton").addEventListener("click", () => $("#fileInput").click());
+      $("#fileInput").addEventListener("change", importBook);
+      $("#templateButton").addEventListener("click", downloadTemplate);
+      $$(".nav-btn").forEach(btn => btn.addEventListener("click", () => {
+        state.tab = btn.dataset.tab;
+        state.flowOpen = false;
+        state.revealed = false;
+        $$(".nav-btn").forEach(x => x.classList.toggle("active", x === btn));
+        render();
+      }));
+    }
+
+    async function upgradeSession(session) {
+      let changed = false;
+      if (!Array.isArray(session.quizAnswers)) { session.quizAnswers = []; changed = true; }
+      if (!session.quizOptions) { session.quizOptions = {}; changed = true; }
+      if (!session.quizRetries) { session.quizRetries = {}; changed = true; }
+      if (!session.spellingRetries) { session.spellingRetries = {}; changed = true; }
+      if (typeof session.spellingCorrect !== "number") { session.spellingCorrect = 0; changed = true; }
+      if (typeof session.spellingWrong !== "number") { session.spellingWrong = 0; changed = true; }
+      if (session.completed && session.quizVersion !== 2 && session.newIds?.length) {
+        session.quizVersion = 2;
+        session.quizMode = "spelling";
+        session.quizQueue = [...session.newIds];
+        session.quizIndex = 0;
+        session.quizAnswers = session.quizAnswers.map(answer => ({ ...answer, type: answer.type || "choice" }));
+        session.stage = "quiz";
+        session.completed = false;
+        delete session.completedAt;
+        await remove("activity", session.id);
+        changed = true;
+      } else if (!session.completed && session.quizVersion !== 2) {
+        session.quizVersion = 2;
+        session.quizMode = session.quizMode || "choice";
+        session.quizAnswers = session.quizAnswers.map(answer => ({ ...answer, type: answer.type || "choice" }));
+        changed = true;
+      }
+      if (session.quizVersion === 2 && !session.quizMode) { session.quizMode = "choice"; changed = true; }
+      if (changed) await put("sessions", session);
+      return session;
+    }
+
+    async function getSession() {
+      const id = `${state.book.id}:${localDate()}`;
+      let session = await get("sessions", id);
+      if (session) return upgradeSession(session);
+      const allProgress = (await getAll("progress")).filter(p => p.bookId === state.book.id);
+      const yesterday = localDate(-1);
+      const reviewIds = allProgress.filter(p => p.learnedDate === yesterday).map(p => p.wordId).filter(id => state.book.words.some(w => w.id === id));
+      const learnedIds = new Set(allProgress.filter(p => p.learnedDate).map(p => p.wordId));
+      const newIds = state.book.words.filter(w => !learnedIds.has(w.id)).slice(0, state.settings.dailyNew).map(w => w.id);
+      session = {
+        id, bookId: state.book.id, date: localDate(), reviewIds, newIds,
+        stage: reviewIds.length ? "review" : newIds.length ? "learn" : "complete",
+        reviewIndex: 0, reviewDone: [], reviewKnown: 0,
+        learnQueue: [...newIds], learnIndex: 0, learnDone: [], repeats: {},
+        quizVersion: 2, quizMode: "choice", quizQueue: [], quizIndex: 0, quizCorrect: 0, quizWrong: 0, quizAnswers: [], quizOptions: {}, quizRetries: {}, spellingRetries: {}, spellingCorrect: 0, spellingWrong: 0,
+        completed: !reviewIds.length && !newIds.length, createdAt: Date.now()
+      };
+      await put("sessions", session);
+      if (session.completed) await saveActivity(session);
+      return session;
+    }
+
+    function currentWord() {
+      if (!state.session) return null;
+      let id;
+      if (state.session.stage === "review") id = state.session.reviewIds[state.session.reviewIndex];
+      if (state.session.stage === "learn") id = state.session.learnQueue[state.session.learnIndex];
+      if (state.session.stage === "quiz") id = state.session.quizQueue[state.session.quizIndex];
+      return state.book.words.find(w => w.id === id) || null;
+    }
+
+    function sessionCounts() {
+      const s = state.session;
+      const review = s.reviewIds.length;
+      const learn = s.newIds.length;
+      const quiz = s.newIds.length * (s.quizVersion === 2 ? 2 : 1);
+      const answeredBase = new Set((s.quizAnswers || []).map(answer => `${answer.type || "choice"}:${answer.wordId}`)).size;
+      const total = review + learn + quiz;
+      const done = Math.min(total, s.reviewDone.length + s.learnDone.length + Math.min(answeredBase, quiz));
+      return { review, learn, quiz, total, done, percent: total ? Math.round(done / total * 100) : 100 };
+    }
+
+    async function refreshHeader() {
+      $("#bookName").textContent = state.book.name;
+      $("#streakCount").textContent = String(await getStreak());
+    }
+
+    async function getStreak() {
+      const rows = (await getAll("activity")).filter(a => a.bookId === state.book.id && a.completed);
+      const dates = new Set(rows.map(a => a.date));
+      let offset = dates.has(localDate()) ? 0 : -1;
+      let count = 0;
+      while (dates.has(localDate(offset))) { count++; offset--; }
+      return count;
+    }
+
+    function railHTML() {
+      const s = state.session;
+      const c = sessionCounts();
+      const stages = [
+        { id: "review", label: "昨日复习", count: c.review },
+        { id: "learn", label: "今日学习", count: c.learn },
+        { id: "quiz", label: "今日测验", count: c.quiz }
+      ];
+      const order = { review: 0, learn: 1, quiz: 2, complete: 3 };
+      return `<div class="stage-rail">${stages.map((x, i) => `<div class="stage-item ${s.stage === x.id ? "active" : ""} ${order[s.stage] > i ? "done" : ""}"><small>${x.label}</small><b>${x.count}</b></div>`).join("")}</div>`;
+    }
+
+    function render() {
+      if (state.tab === "review") return renderReview();
+      if (state.tab === "stats") return renderStats();
+      if (state.tab === "plan") return renderPlan();
+      if (state.flowOpen && !state.session.completed) return renderFlow();
+      return renderToday();
+    }
+
+    function renderToday() {
+      const c = sessionCounts();
+      if (state.session.completed) return renderSummary();
+      const action = c.done ? "继续今日任务" : "开始今日任务";
+      main.innerHTML = `<section class="screen">
+        <p class="eyebrow">DAILY ROUTINE</p>
+        <div class="today-head"><div><h1>今日学习</h1><p class="sub">${dateLabel(localDate())} · 按节奏完成三步</p></div><div class="today-number"><strong>${c.done}</strong><span>/ ${c.total}</span></div></div>
+        <div class="progress-track" aria-label="今日进度"><div class="progress-fill" style="width:${c.percent}%"></div></div>
+        ${railHTML()}
+        <div class="card dashboard-card">
+          <div class="flow-row"><div class="flow-icon">↺</div><div><h3>复习昨天学过的词</h3><p>${c.review ? "先唤醒短期记忆" : "昨天没有待复习词"}</p></div><div class="flow-count">${c.review}</div></div>
+          <div class="flow-row"><div class="flow-icon">Aa</div><div><h3>学习今天的新词</h3><p>详细解析、常用短语、例句、辨析与词源</p></div><div class="flow-count">${c.learn}</div></div>
+          <div class="flow-row"><div class="flow-icon">✓</div><div><h3>完成当天测验</h3><p>释义选择 + 中文提示拼写</p></div><div class="flow-count">${c.quiz}</div></div>
+          <button class="primary block start-button" type="button" id="startFlow">${action} · ${stageLabel(state.session.stage)}</button>
+        </div>
+      </section>`;
+      $("#startFlow").addEventListener("click", () => { state.flowOpen = true; state.revealed = false; render(); });
+    }
+
+    function stageLabel(stage) { return ({ review: "昨日复习", learn: "今日学习", quiz: "今日测验", complete: "已完成" })[stage] || "继续"; }
+
+    function renderFlow() {
+      if (state.session.stage === "quiz") return renderQuiz();
+      const word = currentWord();
+      if (!word) { advanceStage(); return; }
+      const isReview = state.session.stage === "review";
+      const current = isReview ? state.session.reviewIndex + 1 : state.session.learnIndex + 1;
+      const total = isReview ? state.session.reviewIds.length : state.session.learnQueue.length;
+      const c = sessionCounts();
+      const showDetail = !isReview || state.revealed;
+      main.innerHTML = `<section class="screen">
+        <div class="today-head"><div><p class="eyebrow">${isReview ? "REVIEW" : "LEARN"}</p><h2>${stageLabel(state.session.stage)} <span class="sub">${current} / ${total}</span></h2></div><div class="completion">今日 ${c.percent}%</div></div>
+        <div class="progress-track"><div class="progress-fill" style="width:${c.percent}%"></div></div>
+        ${railHTML()}
+        <article class="card study-card">
+          <div class="study-top"><div><h1 class="word">${esc(word.word)}</h1><p class="phonetic">${esc(word.phonetic)}</p></div><button class="audio-btn" type="button" id="audioButton" aria-label="播放 ${esc(word.word)} 的发音">▶</button></div>
+          ${showDetail ? wordDetailHTML(word) : `<div class="reveal-placeholder"><div><b>先回忆这个词的含义</b><p class="sub">想好后再显示答案</p></div></div>`}
+        </article>
+        ${isReview && !state.revealed ? `<div class="actions single"><button class="primary block" type="button" id="revealButton">显示答案</button></div>` : `<div class="actions"><button class="secondary" type="button" id="againButton">${isReview ? "还不熟" : "再看看"}</button><button class="primary" type="button" id="knowButton">${isReview ? "认识" : "记住了"}</button></div>`}
+      </section>`;
+      $("#audioButton").addEventListener("click", event => playAudio(word, event.currentTarget));
+      if (isReview && !state.revealed) $("#revealButton").addEventListener("click", () => { state.revealed = true; render(); });
+      else {
+        $("#againButton").addEventListener("click", () => rateWord(false));
+        $("#knowButton").addEventListener("click", () => rateWord(true));
+      }
+    }
+
+    function phraseSectionHTML(word, compact = false) {
+      const phrases = Array.isArray(word.phrases) ? word.phrases : [];
+      if (!phrases.length) return compact ? "" : `<details class="info-section" open><summary>常用短语 · 0</summary><div class="detail-body"><span class="sub">暂无</span></div></details>`;
+      const body = phrases.map(x => `<div class="phrase-item"><p>${highlightWord(x.en, word.word)}</p><small>${esc(x.zh)}</small></div>`).join("");
+      return compact ? body : `<details class="info-section" open><summary>常用短语 · ${phrases.length}</summary><div class="detail-body">${body}</div></details>`;
+    }
+
+    function etymologySectionHTML(word, compact = false) {
+      const source = word.etymology && typeof word.etymology === "object" ? word.etymology : {};
+      const cognates = Array.isArray(source.cognates) ? source.cognates : [];
+      if (!source.root && !source.explanation && !source.memory && !cognates.length) return compact ? "" : `<details class="info-section" open><summary>词源分析</summary><div class="detail-body"><span class="sub">暂无</span></div></details>`;
+      const root = source.root ? `<p><b>词根 / 基础词：</b>${esc(source.root)}${source.rootMeaning ? `（${esc(source.rootMeaning)}）` : ""}</p>` : "";
+      const explanation = source.explanation ? `<p><b>词源与构词：</b>${esc(source.explanation)}</p>` : "";
+      const family = cognates.length ? `<div><b>同源词：</b><div class="word-family">${cognates.map(x => `<span class="family-word"><b>${esc(x.word)}</b>${x.meaning || x.note ? ` · ${esc(x.meaning || x.note)}` : ""}</span>`).join("")}</div></div>` : "";
+      const memory = source.memory ? `<p><b>记忆提示：</b>${esc(source.memory)}</p>` : "";
+      const body = `<div class="etymology-card">${root}${explanation}${family}${memory}</div>`;
+      return compact ? body : `<details class="info-section" open><summary>词源分析</summary><div class="detail-body">${body}</div></details>`;
+    }
+
+    function wordDetailHTML(word) {
+      return `<div class="word-detail"><p class="meaning"><span class="pos">${esc(word.partOfSpeech)}</span>${esc(word.meaning)}</p>${word.analysis ? `<p class="analysis">${esc(word.analysis)}</p>` : ""}</div>
+        ${phraseSectionHTML(word)}
+        <details class="info-section" open><summary>例句 · ${word.examples.length}</summary><div class="detail-body">${word.examples.map(x => `<div class="example"><p>${highlightWord(x.en, word.word)}</p><small>${esc(x.zh)}</small></div>`).join("")}</div></details>
+        <details class="info-section" open><summary>近义词</summary><div class="detail-body"><div class="chip-list">${word.synonyms.length ? word.synonyms.map(x => `<span class="chip"><b>${esc(x.word)}</b>${x.note ? ` · ${esc(x.note)}` : ""}</span>`).join("") : "暂无"}</div></div></details>
+        <details class="info-section" open><summary>形似与易混词</summary><div class="detail-body"><div class="chip-list">${word.confusables.length ? word.confusables.map(x => `<span class="chip"><b>${esc(x.word)}</b>${x.note ? ` · ${esc(x.note)}` : ""}</span>`).join("") : "暂无"}</div></div></details>
+        ${etymologySectionHTML(word)}`;
+    }
+
+    function highlightWord(sentence, word) {
+      const safe = esc(sentence);
+      const pattern = word.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      return safe.replace(new RegExp(`\\b(${pattern})\\b`, "ig"), `<strong style="color:var(--indigo)">$1</strong>`);
+    }
+
+    async function playAudio(word, button) {
+      button.classList.add("playing");
+      const fallback = () => {
+        if ("speechSynthesis" in window) {
+          speechSynthesis.cancel();
+          const utterance = new SpeechSynthesisUtterance(word.word);
+          utterance.lang = "en-US";
+          utterance.rate = .86;
+          utterance.onend = () => button.classList.remove("playing");
+          speechSynthesis.speak(utterance);
+        } else { button.classList.remove("playing"); toast("当前浏览器无法播放发音"); }
+      };
+      const raw = word.audioBase64 || word.audio || "";
+      if (!raw) return fallback();
+      try {
+        const src = raw.startsWith("data:audio/") ? raw : `data:audio/mpeg;base64,${raw}`;
+        const audio = new Audio(src);
+        audio.onended = () => button.classList.remove("playing");
+        audio.onerror = fallback;
+        await audio.play();
+      } catch { fallback(); }
+    }
+
+    async function rateWord(known) {
+      const word = currentWord();
+      if (!word) return;
+      const s = state.session;
+      const key = `${state.book.id}:${word.id}`;
+      const progress = await get("progress", key) || { key, bookId: state.book.id, wordId: word.id, reviewCount: 0, exposures: 0, correct: 0, wrong: 0 };
+      progress.lastSeen = localDate();
+      progress.exposures = (progress.exposures || 0) + 1;
+      if (s.stage === "review") {
+        progress.reviewCount = (progress.reviewCount || 0) + 1;
+        progress.lastReviewDate = localDate();
+        if (known) s.reviewKnown++;
+        else progress.wrong = (progress.wrong || 0) + 1;
+        if (!s.reviewDone.includes(word.id)) s.reviewDone.push(word.id);
+        s.reviewIndex++;
+      } else {
+        if (!progress.learnedDate) progress.learnedDate = localDate();
+        if (!s.learnDone.includes(word.id)) s.learnDone.push(word.id);
+        if (!known && !s.repeats[word.id]) {
+          s.repeats[word.id] = 1;
+          s.learnQueue.push(word.id);
+        }
+        s.learnIndex++;
+      }
+      await put("progress", progress);
+      state.revealed = false;
+      await advanceStage();
+    }
+
+    async function advanceStage() {
+      const s = state.session;
+      if (s.stage === "review" && s.reviewIndex >= s.reviewIds.length) {
+        s.stage = s.newIds.length ? "learn" : "complete";
+      }
+      if (s.stage === "learn" && s.learnIndex >= s.learnQueue.length) {
+        s.quizMode = "choice";
+        s.quizQueue = [...s.newIds];
+        s.quizIndex = 0;
+        s.stage = s.quizQueue.length ? "quiz" : "complete";
+      }
+      if (s.stage === "quiz" && s.quizIndex >= s.quizQueue.length) {
+        if (s.quizVersion === 2 && s.quizMode === "choice") {
+          s.quizMode = "spelling";
+          s.quizQueue = [...s.newIds];
+          s.quizIndex = 0;
+        } else {
+          s.stage = "complete";
+        }
+      }
+      if (s.stage === "complete") {
+        s.completed = true;
+        s.completedAt = Date.now();
+        state.flowOpen = false;
+        await saveActivity(s);
+        await refreshHeader();
+      }
+      await put("sessions", s);
+      state.quizAnswered = false;
+      state.selectedAnswer = null;
+      render();
+    }
+
+    function getQuizOptions(word) {
+      const s = state.session;
+      const indexKey = `${s.quizIndex}:${word.id}`;
+      if (s.quizOptions[indexKey]) return s.quizOptions[indexKey];
+      const distractors = shuffle(state.book.words.filter(w => w.id !== word.id).map(w => w.meaning)).slice(0, 3);
+      const fallback = ["逐渐减少；缩小", "明确表达；阐明", "相互依赖的；关联的"];
+      while (distractors.length < 3) distractors.push(fallback[distractors.length]);
+      s.quizOptions[indexKey] = shuffle([word.meaning, ...distractors]);
+      put("sessions", s);
+      return s.quizOptions[indexKey];
+    }
+
+    function renderQuiz() {
+      if (state.session.quizVersion === 2 && state.session.quizMode === "spelling") return renderSpellingQuiz();
+      const word = currentWord();
+      if (!word) { advanceStage(); return; }
+      const s = state.session;
+      const options = getQuizOptions(word);
+      const answered = state.quizAnswered;
+      const isCorrect = state.selectedAnswer === word.meaning;
+      const c = sessionCounts();
+      main.innerHTML = `<section class="screen">
+        <div class="today-head"><div><p class="eyebrow">QUIZ · CHOICE</p><h2>释义选择 <span class="sub">${s.quizIndex + 1} / ${s.quizQueue.length}</span></h2></div><div class="completion">${s.quizIndex >= s.newIds.length ? "释义错题加练" : `今日 ${c.percent}%`}</div></div>
+        <div class="progress-track"><div class="progress-fill" style="width:${c.percent}%"></div></div>
+        ${railHTML()}
+        <div class="quiz-title"><span class="quiz-kind">第一轮 · 认词</span><h1 class="word">${esc(word.word)}</h1><p>请选择最准确的中文含义</p></div>
+        <div class="options">${options.map(option => {
+          let cls = "";
+          if (answered && option === word.meaning) cls = "correct";
+          else if (answered && option === state.selectedAnswer) cls = "wrong";
+          return `<button class="option ${cls}" type="button" data-option="${esc(option)}" ${answered ? "disabled" : ""}>${esc(option)}</button>`;
+        }).join("")}</div>
+        ${answered ? `<div class="answer-note"><b>${isCorrect ? "回答正确" : "正确答案"}</b>：${esc(word.partOfSpeech)} ${esc(word.meaning)}${!isCorrect ? "<br>这个词已加入本轮加练。" : ""}</div><div class="actions single"><button class="primary block" type="button" id="nextQuestion">${s.quizIndex + 1 >= s.quizQueue.length ? "完成今日学习" : "下一题"}</button></div>` : ""}
+      </section>`;
+      if (!answered) $$(".option").forEach(btn => btn.addEventListener("click", () => answerQuiz(btn.dataset.option)));
+      else $("#nextQuestion").addEventListener("click", nextQuiz);
+    }
+
+    async function answerQuiz(answer) {
+      if (state.quizAnswered) return;
+      const word = currentWord();
+      const correct = answer === word.meaning;
+      state.quizAnswered = true;
+      state.selectedAnswer = answer;
+      const s = state.session;
+      if (correct) s.quizCorrect++;
+      else {
+        s.quizWrong++;
+        s.quizRetries[word.id] = (s.quizRetries[word.id] || 0) + 1;
+        if (s.quizRetries[word.id] === 1) s.quizQueue.push(word.id);
+      }
+      s.quizAnswers.push({ type: "choice", wordId: word.id, correct, at: Date.now() });
+      const key = `${state.book.id}:${word.id}`;
+      const progress = await get("progress", key) || { key, bookId: state.book.id, wordId: word.id, reviewCount: 0, exposures: 0, correct: 0, wrong: 0 };
+      progress[correct ? "correct" : "wrong"] = (progress[correct ? "correct" : "wrong"] || 0) + 1;
+      progress.lastTestDate = localDate();
+      progress.mastery = Math.max(0, Math.min(100, Math.round(((progress.correct || 0) * 2 + (progress.reviewCount || 0)) / Math.max(1, (progress.correct || 0) * 2 + (progress.reviewCount || 0) + (progress.wrong || 0) * 2) * 100)));
+      await put("progress", progress);
+      await put("sessions", s);
+      renderQuiz();
+    }
+
+    function normalizeSpelling(value) {
+      return String(value || "").trim().toLowerCase().replace(/[’‘]/g, "'").replace(/\s+/g, " ");
+    }
+
+    function renderSpellingQuiz() {
+      const word = currentWord();
+      if (!word) { advanceStage(); return; }
+      const s = state.session;
+      const answered = state.quizAnswered;
+      const isCorrect = normalizeSpelling(state.selectedAnswer) === normalizeSpelling(word.word);
+      const c = sessionCounts();
+      main.innerHTML = `<section class="screen">
+        <div class="today-head"><div><p class="eyebrow">QUIZ · SPELLING</p><h2>拼写测验 <span class="sub">${s.quizIndex + 1} / ${s.quizQueue.length}</span></h2></div><div class="completion">${s.quizIndex >= s.newIds.length ? "拼写错题加练" : `今日 ${c.percent}%`}</div></div>
+        <div class="progress-track"><div class="progress-fill" style="width:${c.percent}%"></div></div>
+        ${railHTML()}
+        <div class="card spelling-card">
+          <span class="quiz-kind">第二轮 · 拼写</span>
+          <p class="spelling-hint">根据中文意思写出英文单词</p>
+          <div class="spelling-meaning"><span class="pos">${esc(word.partOfSpeech)}</span> ${esc(word.meaning)}</div>
+          <p class="spelling-hint">${word.word.length} 个字母${word.phonetic ? ` · 音标 ${esc(word.phonetic)}` : ""}</p>
+          <form class="spelling-form" id="spellingForm">
+            <input class="spelling-input ${answered ? (isCorrect ? "correct" : "wrong") : ""}" id="spellingInput" name="spelling" type="text" value="${esc(state.selectedAnswer || "")}" placeholder="输入英文单词" autocomplete="off" autocapitalize="none" spellcheck="false" enterkeyhint="done" ${answered ? "disabled" : ""} aria-label="输入对应英文单词">
+          </form>
+          ${answered ? `<div class="spelling-answer">${isCorrect ? "拼写正确" : `正确拼写是 <b>${esc(word.word)}</b>${state.selectedAnswer ? `<br>你的答案：${esc(state.selectedAnswer)}` : ""}`}<br><span class="sub">${esc(word.phonetic)}</span></div>` : ""}
+        </div>
+        ${answered ? `<div class="actions single"><button class="primary block" type="button" id="nextQuestion">${s.quizIndex + 1 >= s.quizQueue.length ? "完成今日学习" : "下一题"}</button></div>` : `<div class="actions"><button class="secondary" type="button" id="skipSpelling">不会</button><button class="primary" type="submit" form="spellingForm">提交拼写</button></div>`}
+      </section>`;
+      if (answered) {
+        $("#nextQuestion").addEventListener("click", nextQuiz);
+      } else {
+        $("#spellingForm").addEventListener("submit", event => { event.preventDefault(); answerSpelling($("#spellingInput").value); });
+        $("#skipSpelling").addEventListener("click", () => answerSpelling(""));
+        requestAnimationFrame(() => $("#spellingInput")?.focus());
+      }
+    }
+
+    async function answerSpelling(answer) {
+      if (state.quizAnswered) return;
+      const word = currentWord();
+      const correct = normalizeSpelling(answer) === normalizeSpelling(word.word);
+      state.quizAnswered = true;
+      state.selectedAnswer = String(answer || "").trim();
+      const s = state.session;
+      if (correct) {
+        s.quizCorrect++;
+        s.spellingCorrect++;
+      } else {
+        s.quizWrong++;
+        s.spellingWrong++;
+        s.spellingRetries[word.id] = (s.spellingRetries[word.id] || 0) + 1;
+        if (s.spellingRetries[word.id] === 1) s.quizQueue.push(word.id);
+      }
+      s.quizAnswers.push({ type: "spelling", wordId: word.id, answer: state.selectedAnswer, correct, at: Date.now() });
+      const key = `${state.book.id}:${word.id}`;
+      const progress = await get("progress", key) || { key, bookId: state.book.id, wordId: word.id, reviewCount: 0, exposures: 0, correct: 0, wrong: 0 };
+      progress[correct ? "correct" : "wrong"] = (progress[correct ? "correct" : "wrong"] || 0) + 1;
+      progress[correct ? "spellingCorrect" : "spellingWrong"] = (progress[correct ? "spellingCorrect" : "spellingWrong"] || 0) + 1;
+      progress.lastTestDate = localDate();
+      progress.mastery = Math.max(0, Math.min(100, Math.round(((progress.correct || 0) * 2 + (progress.reviewCount || 0)) / Math.max(1, (progress.correct || 0) * 2 + (progress.reviewCount || 0) + (progress.wrong || 0) * 2) * 100)));
+      await put("progress", progress);
+      await put("sessions", s);
+      renderSpellingQuiz();
+    }
+
+    async function nextQuiz() {
+      state.session.quizIndex++;
+      state.quizAnswered = false;
+      state.selectedAnswer = null;
+      await advanceStage();
+    }
+
+    async function saveActivity(s) {
+      const id = `${s.bookId}:${s.date}`;
+      await put("activity", { id, bookId: s.bookId, date: s.date, completed: true, reviewed: s.reviewDone.length, learned: s.learnDone.length, quizCorrect: s.quizCorrect, quizWrong: s.quizWrong, spellingCorrect: s.spellingCorrect || 0, spellingWrong: s.spellingWrong || 0, completedAt: s.completedAt || Date.now() });
+    }
+
+    function renderSummary() {
+      const s = state.session;
+      const totalQuiz = s.quizCorrect + s.quizWrong;
+      const accuracy = totalQuiz ? Math.round(s.quizCorrect / totalQuiz * 100) : 100;
+      main.innerHTML = `<section class="screen">
+        <p class="eyebrow">DAILY COMPLETE</p>
+        <div class="card summary-card">
+          <div class="summary-mark">✓</div><h1>今天完成了</h1><p class="sub">复习、学习、测验全部结束。明天会先复习今天的新词。</p>
+          <div class="score-grid"><div class="score-item"><b>${s.reviewDone.length}</b><small>已复习</small></div><div class="score-item"><b>${s.learnDone.length}</b><small>新学词</small></div><div class="score-item"><b>${accuracy}%</b><small>综合正确率</small></div></div>
+          <button class="primary block" type="button" id="viewStats">查看学习统计</button>
+        </div>
+      </section>`;
+      $("#viewStats").addEventListener("click", () => { state.tab = "stats"; $$(".nav-btn").forEach(x => x.classList.toggle("active", x.dataset.tab === "stats")); render(); });
+    }
+
+    async function renderReview() {
+      const progress = (await getAll("progress")).filter(p => p.bookId === state.book.id && p.learnedDate);
+      const progressByWord = new Map(progress.map(p => [p.wordId, p]));
+      let words = state.book.words.filter(word => progressByWord.has(word.id));
+      if (state.reviewFilter === "today") words = words.filter(word => progressByWord.get(word.id).learnedDate === localDate());
+      if (state.reviewFilter === "before") words = words.filter(word => progressByWord.get(word.id).learnedDate < localDate());
+      words.sort((a, b) => progressByWord.get(b.id).learnedDate.localeCompare(progressByWord.get(a.id).learnedDate) || a.word.localeCompare(b.word));
+      main.innerHTML = `<section class="screen">
+        <div class="section-head"><div><p class="eyebrow">LOOK BACK</p><h1>回顾已学单词</h1></div><span class="review-result-count" id="reviewResultCount">${words.length} 个词</span></div>
+        <div class="review-controls">
+          <div class="review-tabs" role="tablist" aria-label="回顾时间范围">
+            <button class="review-filter ${state.reviewFilter === "today" ? "active" : ""}" type="button" data-review-filter="today">今天</button>
+            <button class="review-filter ${state.reviewFilter === "before" ? "active" : ""}" type="button" data-review-filter="before">之前</button>
+            <button class="review-filter ${state.reviewFilter === "all" ? "active" : ""}" type="button" data-review-filter="all">全部</button>
+          </div>
+          <input class="review-search" id="reviewSearch" type="search" value="${esc(state.reviewQuery)}" placeholder="搜索单词或中文释义" aria-label="搜索已学单词">
+        </div>
+        <div class="review-list" id="reviewList">${words.length ? words.map(word => {
+          const p = progressByWord.get(word.id);
+          const learnedLabel = p.learnedDate === localDate() ? "今天学过" : `${dateLabel(p.learnedDate)} 学过`;
+          const searchText = `${word.word} ${word.phonetic} ${word.meaning} ${word.analysis} ${(word.phrases || []).map(x => `${x.en} ${x.zh}`).join(" ")} ${word.etymology?.root || ""} ${word.etymology?.explanation || ""}`.toLowerCase();
+          return `<details class="review-card" data-review-search="${esc(searchText)}">
+            <summary><div><div class="review-word"><b>${esc(word.word)}</b><span>${esc(word.phonetic)}</span></div><p class="review-meaning"><span class="pos">${esc(word.partOfSpeech)}</span> ${esc(word.meaning)}</p></div><div class="review-meta"><button class="mini-audio" type="button" data-review-audio="${esc(word.id)}" aria-label="播放 ${esc(word.word)} 的发音">▶</button><span>${learnedLabel}</span></div></summary>
+            <div class="review-detail">${word.analysis ? `<p class="analysis">${esc(word.analysis)}</p>` : ""}${phraseSectionHTML(word, true)}${word.examples.map(x => `<div class="example"><p>${highlightWord(x.en, word.word)}</p><small>${esc(x.zh)}</small></div>`).join("")}<div class="chip-list">${word.synonyms.map(x => `<span class="chip"><b>${esc(x.word)}</b>${x.note ? ` · ${esc(x.note)}` : ""}</span>`).join("")}${word.confusables.map(x => `<span class="chip"><b>${esc(x.word)}</b>${x.note ? ` · ${esc(x.note)}` : ""}</span>`).join("")}</div>${etymologySectionHTML(word, true)}</div>
+          </details>`;
+        }).join("") : `<div class="card empty"><h2>${state.reviewFilter === "today" ? "今天还没有学过单词" : "这个范围内还没有单词"}</h2><p>完成学习后，单词会自动出现在这里。</p><button class="primary small-button" type="button" id="goStudy">去今日学习</button></div>`}</div>
+      </section>`;
+      $$("[data-review-filter]").forEach(btn => btn.addEventListener("click", () => { state.reviewFilter = btn.dataset.reviewFilter; state.reviewQuery = ""; renderReview(); }));
+      $$("[data-review-audio]").forEach(btn => btn.addEventListener("click", event => {
+        event.preventDefault(); event.stopPropagation();
+        const word = state.book.words.find(item => item.id === btn.dataset.reviewAudio);
+        if (word) playAudio(word, btn);
+      }));
+      const search = $("#reviewSearch");
+      search.addEventListener("input", () => {
+        state.reviewQuery = search.value;
+        const query = search.value.trim().toLowerCase();
+        let visible = 0;
+        $$("[data-review-search]").forEach(card => { const show = !query || card.dataset.reviewSearch.includes(query); card.classList.toggle("hidden", !show); if (show) visible++; });
+        $("#reviewResultCount").textContent = `${visible} 个词`;
+      });
+      if (state.reviewQuery) search.dispatchEvent(new Event("input"));
+      const goStudy = $("#goStudy");
+      if (goStudy) goStudy.addEventListener("click", () => { state.tab = "today"; $$(".nav-btn").forEach(x => x.classList.toggle("active", x.dataset.tab === "today")); render(); });
+    }
+
+    async function renderStats() {
+      const progress = (await getAll("progress")).filter(p => p.bookId === state.book.id);
+      const activity = (await getAll("activity")).filter(a => a.bookId === state.book.id);
+      const learned = progress.filter(p => p.learnedDate).length;
+      const mastered = progress.filter(p => (p.mastery || 0) >= 75).length;
+      const correct = progress.reduce((n, p) => n + (p.correct || 0), 0);
+      const wrong = progress.reduce((n, p) => n + (p.wrong || 0), 0);
+      const spellingCorrect = progress.reduce((n, p) => n + (p.spellingCorrect || 0), 0);
+      const spellingWrong = progress.reduce((n, p) => n + (p.spellingWrong || 0), 0);
+      const accuracy = correct + wrong ? Math.round(correct / (correct + wrong) * 100) : 0;
+      const spellingAccuracy = spellingCorrect + spellingWrong ? Math.round(spellingCorrect / (spellingCorrect + spellingWrong) * 100) : 0;
+      const last7 = Array.from({ length: 7 }, (_, i) => localDate(i - 6));
+      const values = last7.map(date => { const row = activity.find(a => a.date === date); return row ? row.learned + row.reviewed : 0; });
+      const max = Math.max(1, ...values);
+      main.innerHTML = `<section class="screen">
+        <div class="section-head"><div><p class="eyebrow">PROGRESS</p><h1>学习统计</h1></div><span class="sub">${esc(state.book.name)}</span></div>
+        <div class="stat-grid"><div class="stat-card"><b>${learned}</b><small>累计学习 / ${state.book.words.length}</small></div><div class="stat-card"><b>${mastered}</b><small>已掌握词</small></div><div class="stat-card"><b>${accuracy}%</b><small>综合正确率</small></div><div class="stat-card"><b>${spellingAccuracy}%</b><small>拼写正确率</small></div><div class="stat-card"><b>${spellingCorrect + spellingWrong}</b><small>累计拼写次数</small></div><div class="stat-card"><b>${activity.filter(a => a.completed).length}</b><small>完成天数</small></div></div>
+        <div class="card chart-card"><h2>最近 7 天学习量</h2><p class="sub">新学词与复习词合计</p><div class="week-chart">${last7.map((date, i) => `<div class="day-bar"><div class="bar-wrap" title="${values[i]} 个词"><div class="bar" style="height:${Math.max(4, values[i] / max * 100)}%"></div></div><small>${date === localDate() ? "今天" : date.slice(5).replace("-", "/")}</small></div>`).join("")}</div></div>
+      </section>`;
+    }
+
+    async function renderPlan() {
+      const progress = (await getAll("progress")).filter(p => p.bookId === state.book.id);
+      const learned = progress.filter(p => p.learnedDate).length;
+      const remaining = Math.max(0, state.book.words.length - learned);
+      const days = Math.ceil(remaining / state.settings.dailyNew);
+      const finish = new Date(); finish.setDate(finish.getDate() + days);
+      const pct = state.book.words.length ? Math.round(learned / state.book.words.length * 100) : 0;
+      main.innerHTML = `<section class="screen">
+        <div class="section-head"><div><p class="eyebrow">PLAN</p><h1>学习计划</h1></div></div>
+        <div class="card plan-card"><div class="plan-row"><div><h3>每天学习新词</h3><p>修改后从下一次生成当日任务起生效</p></div><div class="stepper"><button type="button" id="minusDaily" aria-label="减少每日词数">−</button><b>${state.settings.dailyNew}</b><button type="button" id="plusDaily" aria-label="增加每日词数">+</button></div></div>
+          <div class="plan-row"><div><h3>预计完成</h3><p>剩余 ${remaining} 词，约 ${days} 天</p></div><b>${finish.toLocaleDateString("zh-CN", { month: "short", day: "numeric" })}</b></div>
+          <div class="plan-meter"><div class="plan-row"><span class="sub">整本进度</span><b>${pct}%</b></div><div class="progress-track"><div class="progress-fill" style="width:${pct}%"></div></div></div>
+        </div>
+        <div class="card plan-card"><div class="plan-row"><div><h3>单词书管理</h3><p>导入、切换或查看 JSON 格式</p></div><button class="secondary small-button" type="button" id="manageBooks">管理</button></div>
+          <div class="plan-row"><div><h3>导出学习数据</h3><p>备份当前词书的进度与历史</p></div><button class="ghost small-button" type="button" id="exportProgress">导出</button></div></div>
+        <div class="card plan-card"><div class="plan-row"><div><h3>重置当前词书</h3><p>删除该词书的学习进度和每日记录</p></div><button class="danger small-button" type="button" id="resetProgress">重置</button></div></div>
+      </section>`;
+      $("#minusDaily").addEventListener("click", () => changeDaily(-1));
+      $("#plusDaily").addEventListener("click", () => changeDaily(1));
+      $("#manageBooks").addEventListener("click", openBooks);
+      $("#exportProgress").addEventListener("click", exportProgress);
+      $("#resetProgress").addEventListener("click", resetProgress);
+    }
+
+    async function changeDaily(delta) {
+      state.settings.dailyNew = Math.max(1, Math.min(50, state.settings.dailyNew + delta));
+      await put("meta", state.settings);
+      renderPlan();
+    }
+
+    async function openBooks() {
+      state.books = await getAll("books");
+      $("#bookList").innerHTML = state.books.map(book => `<button class="book-item ${book.id === state.book.id ? "active" : ""}" type="button" data-book-id="${esc(book.id)}"><div><h3>${esc(book.name)}</h3><p>${book.words.length} 个词 · ${esc(book.description || "自定义词书")}</p></div>${book.id === state.book.id ? `<span class="check">✓</span>` : ""}</button>`).join("");
+      $$("[data-book-id]").forEach(btn => btn.addEventListener("click", () => switchBook(btn.dataset.bookId)));
+      bookDialog.showModal();
+    }
+
+    async function switchBook(id) {
+      const book = state.books.find(b => b.id === id);
+      if (!book || book.id === state.book.id) { bookDialog.close(); return; }
+      state.book = book;
+      state.settings.activeBookId = id;
+      await put("meta", state.settings);
+      state.session = await getSession();
+      state.tab = "today"; state.flowOpen = false; state.revealed = false;
+      $$(".nav-btn").forEach(x => x.classList.toggle("active", x.dataset.tab === "today"));
+      bookDialog.close();
+      await refreshHeader();
+      render();
+      toast(`已切换到《${book.name}》`);
+    }
+
+    function normalizeBook(raw) {
+      if (!raw || typeof raw !== "object" || !Array.isArray(raw.words) || !raw.words.length) throw new Error("JSON 中缺少 words 数组");
+      const id = String(raw.id || `book-${Date.now()}`).replace(/[^a-zA-Z0-9_-]/g, "-");
+      const words = raw.words.map((item, index) => {
+        if (!item || !item.word) throw new Error(`第 ${index + 1} 个单词缺少 word 字段`);
+        const list = value => Array.isArray(value) ? value.map(x => typeof x === "string" ? { word: x, note: "" } : { word: x.word || x.term || "", note: x.note || x.meaning || "" }).filter(x => x.word) : [];
+        const examples = Array.isArray(item.examples) ? item.examples.map(x => typeof x === "string" ? { en: x, zh: "" } : { en: x.en || x.sentence || "", zh: x.zh || x.translation || "" }).filter(x => x.en) : [];
+        const phrases = Array.isArray(item.phrases || item.commonPhrases) ? (item.phrases || item.commonPhrases).map(x => typeof x === "string" ? { en: x, zh: "" } : { en: x.en || x.phrase || x.text || "", zh: x.zh || x.translation || x.explanation || "" }).filter(x => x.en) : [];
+        const origin = item.etymology || item.wordOrigin || {};
+        const etymology = typeof origin === "string" ? { root: "", rootMeaning: "", explanation: origin, cognates: [], memory: "" } : {
+          root: String(origin.root || origin.base || ""), rootMeaning: String(origin.rootMeaning || origin.baseMeaning || ""),
+          explanation: String(origin.explanation || origin.origin || ""), cognates: list(origin.cognates || origin.relatedWords), memory: String(origin.memory || origin.memoryTip || "")
+        };
+        return {
+          id: String(item.id || item.word.toLowerCase()).replace(/\s+/g, "-"), word: String(item.word),
+          phonetic: String(item.phonetic || item.ipa || ""), audioBase64: String(item.audioBase64 || item.audio || ""),
+          partOfSpeech: String(item.partOfSpeech || item.pos || ""), meaning: String(item.meaning || item.definition || item.translation || ""),
+          analysis: String(item.analysis || item.explanation || ""), phrases, examples, synonyms: list(item.synonyms), confusables: list(item.confusables || item.similarWords), etymology
+        };
+      });
+      const ids = new Set();
+      words.forEach(w => { if (ids.has(w.id)) w.id = `${w.id}-${ids.size}`; ids.add(w.id); });
+      return { id, name: String(raw.name || raw.title || "导入的单词书"), description: String(raw.description || "自定义 JSON 词书"), builtin: false, importedAt: Date.now(), words };
+    }
+
+    async function importBook(event) {
+      const file = event.target.files[0];
+      event.target.value = "";
+      if (!file) return;
+      try {
+        const raw = JSON.parse(await file.text());
+        const book = normalizeBook(raw);
+        const existing = await get("books", book.id);
+        if (existing && !confirm(`词书 ID“${book.id}”已存在，是否覆盖？`)) return;
+        await put("books", book);
+        state.books = await getAll("books");
+        await switchBook(book.id);
+        toast(`已导入 ${book.words.length} 个单词`);
+      } catch (error) { toast(`导入失败：${error.message || "JSON 格式不正确"}`); }
+    }
+
+    function downloadFile(name, data, type = "application/json") {
+      const blob = new Blob([data], { type });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a"); a.href = url; a.download = name; a.click();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    }
+
+    function downloadTemplate() {
+      const sample = { id: "my-wordbook", name: "我的单词书", description: "JSON 格式样例", words: [{ id: "resilient", word: "resilient", phonetic: "/rɪˈzɪliənt/", audioBase64: "在这里填写MP3文件的Base64字符串", partOfSpeech: "adj.", meaning: "有韧性的；能迅速恢复的", analysis: "resilient 强调人在压力后恢复，或系统在故障后继续工作的能力。它常修饰 person、community、system、economy 和 material。理解时可把“承受冲击”与“随后恢复”看成一个完整过程。", phrases: [{ en: "a resilient system", zh: "有韧性的系统；发生故障后仍能恢复" }, { en: "remain resilient", zh: "在压力或变化中保持韧性" }, { en: "a resilient community", zh: "遭遇冲击后能够恢复的社区" }], examples: [{ en: "A resilient system learns from failure.", zh: "有韧性的系统会从失败中学习。" }, { en: "She remained resilient under pressure.", zh: "她在压力下依然坚韧。" }, { en: "The economy is surprisingly resilient.", zh: "该经济体的韧性出人意料。" }, { en: "Resilient materials return to their original shape.", zh: "有弹性的材料会恢复原状。" }, { en: "The community proved resilient after the storm.", zh: "风暴过后，这个社区展现出强大的恢复力。" }], synonyms: [{ word: "robust", note: "强健稳定的" }], confusables: [{ word: "resistant", note: "抵抗的" }], etymology: { root: "resile", rootMeaning: "v. 弹回；恢复", explanation: "来自拉丁语 resilire，字面含义是“向后跳、弹回”；resile + -ent 构成 resilient。", cognates: [{ word: "resilience", note: "韧性；恢复力" }], memory: "把它想成被压弯后仍会弹回原状。" } }] };
+      downloadFile("wordbook-sample.json", JSON.stringify(sample, null, 2));
+    }
+
+    async function exportProgress() {
+      const progress = (await getAll("progress")).filter(p => p.bookId === state.book.id);
+      const sessions = (await getAll("sessions")).filter(s => s.bookId === state.book.id);
+      const activity = (await getAll("activity")).filter(a => a.bookId === state.book.id);
+      downloadFile(`${state.book.id}-progress.json`, JSON.stringify({ exportedAt: new Date().toISOString(), book: { id: state.book.id, name: state.book.name }, settings: { dailyNew: state.settings.dailyNew }, progress, sessions, activity }, null, 2));
+      toast("学习数据已导出");
+    }
+
+    async function resetProgress() {
+      if (!confirm(`确定重置《${state.book.name}》的全部学习进度吗？此操作无法撤销。`)) return;
+      const groups = ["progress", "sessions", "activity"];
+      for (const store of groups) {
+        const rows = await getAll(store);
+        for (const row of rows.filter(x => x.bookId === state.book.id)) await remove(store, row.key || row.id);
+      }
+      state.session = await getSession();
+      state.tab = "today"; state.flowOpen = false;
+      $$(".nav-btn").forEach(x => x.classList.toggle("active", x.dataset.tab === "today"));
+      await refreshHeader(); render(); toast("当前词书进度已重置");
+    }
+
+    init();
+  })();
+  </script>
+</body>
+</html>

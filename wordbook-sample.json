@@ -1,0 +1,70 @@
+{
+  "id": "my-wordbook",
+  "name": "我的单词书",
+  "description": "词阶 JSON 词书格式样例",
+  "audioEncoding": "base64-mp3",
+  "words": [
+    {
+      "id": "resilient",
+      "word": "resilient",
+      "phonetic": "/rɪˈzɪliənt/",
+      "audioBase64": "",
+      "partOfSpeech": "adj.",
+      "meaning": "有韧性的；能迅速恢复的",
+      "analysis": "resilient 强调人在压力后恢复，或系统在故障后继续工作的能力。它常修饰 person、community、system、economy 和 material。理解时可把“承受冲击”与“随后恢复”看成一个完整过程，而不只是单纯的强壮。",
+      "phrases": [
+        {
+          "en": "a resilient system",
+          "zh": "有韧性的系统；发生故障后仍能恢复"
+        },
+        {
+          "en": "remain resilient",
+          "zh": "在压力或变化中保持韧性"
+        },
+        {
+          "en": "a resilient community",
+          "zh": "遭遇冲击后能够恢复的社区"
+        }
+      ],
+      "examples": [
+        {
+          "en": "A resilient system learns from failure.",
+          "zh": "有韧性的系统会从失败中学习。"
+        },
+        {
+          "en": "She remained resilient under pressure.",
+          "zh": "她在压力下依然坚韧。"
+        },
+        {
+          "en": "The economy proved surprisingly resilient.",
+          "zh": "该经济体展现出了出人意料的韧性。"
+        },
+        {
+          "en": "Resilient materials return to their original shape.",
+          "zh": "有弹性的材料会恢复原状。"
+        },
+        {
+          "en": "The community proved resilient after the storm.",
+          "zh": "风暴过后，这个社区展现出强大的恢复力。"
+        }
+      ],
+      "synonyms": [
+        { "word": "robust", "note": "强健稳定的" },
+        { "word": "tough", "note": "坚韧的" }
+      ],
+      "confusables": [
+        { "word": "resistant", "note": "抵抗的，不等于恢复力强" },
+        { "word": "reliant", "note": "依赖的" }
+      ],
+      "etymology": {
+        "root": "resile",
+        "rootMeaning": "v. 弹回；恢复",
+        "explanation": "来自拉丁语 resilire，字面含义是“向后跳、弹回”；resile + -ent 构成 resilient。",
+        "cognates": [
+          { "word": "resilience", "meaning": "韧性；恢复力" }
+        ],
+        "memory": "把它想成被压弯后仍会弹回原状。"
+      }
+    }
+  ]
+}

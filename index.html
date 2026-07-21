@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#f4f5f7">
   <meta name="description" content="词阶：每天复习、学习、测验，进度保存在本机。">
-  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
   <title>词阶 · 每日单词学习</title>
   <style>
     :root {
@@ -250,12 +249,8 @@
     .start-button { margin-top: 17px; }
     button:disabled { cursor: default; opacity: .55; transform: none !important; }
 
-    .study-card { overflow: hidden; }
+    .study-card { overflow: hidden; scroll-margin-top: 82px; }
     .study-top {
-      display: flex;
-      align-items: flex-start;
-      justify-content: space-between;
-      gap: 14px;
       padding: 24px 22px 18px;
     }
     .word {
@@ -265,22 +260,24 @@
       line-height: 1.05;
       letter-spacing: -.045em;
     }
-    .phonetic { margin: 8px 0 0; color: var(--muted); font-family: ui-serif, Georgia, serif; font-size: 18px; }
+    .pronunciation-row { display: flex; align-items: center; gap: 10px; min-height: 32px; margin-top: 8px; }
+    .phonetic { margin: 0; color: var(--muted); font-family: ui-serif, Georgia, serif; font-size: 18px; }
     .audio-btn {
       flex: 0 0 auto;
       display: grid;
-      width: 54px;
-      height: 54px;
+      width: 30px;
+      height: 30px;
       place-items: center;
       border: 0;
       border-radius: 50%;
       background: var(--indigo);
       color: #fff;
+      font-size: 11px;
       cursor: pointer;
-      box-shadow: 0 0 0 8px var(--indigo-soft);
+      box-shadow: 0 0 0 4px var(--indigo-soft);
     }
     .audio-btn.playing { animation: pulse .8s ease-in-out infinite alternate; }
-    @keyframes pulse { to { box-shadow: 0 0 0 13px rgba(79,70,229,.08); } }
+    @keyframes pulse { to { box-shadow: 0 0 0 8px rgba(79,70,229,.08); } }
     .word-detail { padding: 0 22px 22px; }
     .meaning {
       margin: 0;
@@ -711,91 +708,11 @@
     const bookDialog = $("#bookDialog");
     const state = { db: null, books: [], book: null, settings: null, session: null, tab: "today", flowOpen: false, revealed: false, quizAnswered: false, selectedAnswer: null, reviewFilter: "today", reviewQuery: "" };
 
-    const BUILTIN_BOOKS = [
-      {
-        id: "cet6-focus", name: "大学英语进阶", description: "高频抽象词与阅读核心词", builtin: true,
-        words: [
-          { id: "resilient", word: "resilient", phonetic: "/rɪˈzɪliənt/", audioBase64: "", partOfSpeech: "adj.", meaning: "有韧性的；能迅速恢复的", analysis: "来自拉丁语 resilire（跳回）。常用于描述人、组织、系统在压力或失败后恢复的能力。", examples: [
-            { en: "A resilient system learns from failure.", zh: "有韧性的系统会从失败中学习。" },
-            { en: "Children are often more resilient than adults expect.", zh: "孩子往往比成年人想象的更有适应力。" },
-            { en: "The local economy proved resilient during the crisis.", zh: "当地经济在危机中展现出很强的韧性。" }
-          ], synonyms: [{ word: "tough", note: "强调坚韧" }, { word: "robust", note: "强调强健稳定" }], confusables: [{ word: "resistant", note: "抵抗的，不等于恢复力强" }, { word: "reliant", note: "依赖的" }] },
-          { id: "subtle", word: "subtle", phonetic: "/ˈsʌtl/", audioBase64: "", partOfSpeech: "adj.", meaning: "微妙的；不易察觉的；巧妙的", analysis: "字母 b 不发音。常修饰 difference、change、signal、flavor 等需要仔细感知的事物。", examples: [
-            { en: "There is a subtle difference between the two proposals.", zh: "这两项提议之间存在微妙差别。" },
-            { en: "Her tone carried a subtle warning.", zh: "她的语气带着不易察觉的警告。" },
-            { en: "The sauce has a subtle lemon flavor.", zh: "这种酱汁带有淡淡的柠檬味。" }
-          ], synonyms: [{ word: "nuanced", note: "细致入微的" }, { word: "delicate", note: "细微精致的" }], confusables: [{ word: "subtitle", note: "字幕" }, { word: "settle", note: "解决；定居" }] },
-          { id: "coherent", word: "coherent", phonetic: "/koʊˈhɪrənt/", audioBase64: "", partOfSpeech: "adj.", meaning: "连贯的；条理清楚的；一致的", analysis: "co-（共同）+ her（黏附）+ -ent，字面含义是各部分黏合在一起。", examples: [
-            { en: "The report presents a coherent argument.", zh: "这份报告提出了条理清楚的论证。" },
-            { en: "She was too tired to speak coherently.", zh: "她累得无法连贯地说话。" },
-            { en: "We need a coherent long-term strategy.", zh: "我们需要一套一致的长期战略。" }
-          ], synonyms: [{ word: "logical", note: "合乎逻辑的" }, { word: "consistent", note: "前后一致的" }], confusables: [{ word: "cohesive", note: "强调凝聚成整体" }, { word: "inherent", note: "固有的" }] },
-          { id: "ambiguous", word: "ambiguous", phonetic: "/æmˈbɪɡjuəs/", audioBase64: "", partOfSpeech: "adj.", meaning: "模棱两可的；含义不明确的", analysis: "ambi- 表示两边，暗示一句话可朝两个方向理解。", examples: [
-            { en: "The wording of the rule is ambiguous.", zh: "这条规则的措辞含义不明确。" },
-            { en: "His reply was deliberately ambiguous.", zh: "他的回答故意模棱两可。" },
-            { en: "The ending leaves the character's fate ambiguous.", zh: "结局没有明确交代这个角色的命运。" }
-          ], synonyms: [{ word: "unclear", note: "不清楚的" }, { word: "equivocal", note: "模棱两可的" }], confusables: [{ word: "ambitious", note: "有雄心的" }, { word: "anonymous", note: "匿名的" }] },
-          { id: "deteriorate", word: "deteriorate", phonetic: "/dɪˈtɪriəreɪt/", audioBase64: "", partOfSpeech: "v.", meaning: "恶化；退化；变坏", analysis: "多作不及物动词，常用于 health、relations、conditions、quality 等逐步变差。", examples: [
-            { en: "Weather conditions deteriorated rapidly.", zh: "天气状况迅速恶化。" },
-            { en: "Their relationship began to deteriorate.", zh: "他们的关系开始恶化。" },
-            { en: "The material deteriorates when exposed to sunlight.", zh: "这种材料暴露在阳光下会退化。" }
-          ], synonyms: [{ word: "worsen", note: "变糟" }, { word: "decline", note: "衰退" }], confusables: [{ word: "determine", note: "决定；确定" }, { word: "deterrent", note: "威慑物" }] },
-          { id: "prevalent", word: "prevalent", phonetic: "/ˈprevələnt/", audioBase64: "", partOfSpeech: "adj.", meaning: "普遍存在的；盛行的", analysis: "常见搭配 prevalent among/in，强调某种现象在群体或地区中广泛存在。", examples: [
-            { en: "This belief is prevalent among young adults.", zh: "这种观念在年轻成年人中很普遍。" },
-            { en: "The disease is more prevalent in urban areas.", zh: "这种疾病在城市地区更为常见。" },
-            { en: "Remote work has become increasingly prevalent.", zh: "远程办公已经变得越来越普遍。" }
-          ], synonyms: [{ word: "widespread", note: "广泛的" }, { word: "common", note: "常见的" }], confusables: [{ word: "relevant", note: "相关的" }, { word: "prevail", note: "盛行；获胜" }] },
-          { id: "scrutinize", word: "scrutinize", phonetic: "/ˈskruːtənaɪz/", audioBase64: "", partOfSpeech: "v.", meaning: "仔细检查；详细审查", analysis: "比 examine 更强调带着怀疑或寻找问题的态度逐项细看。", examples: [
-            { en: "Investors scrutinized the company's financial statements.", zh: "投资者仔细审查了公司的财务报表。" },
-            { en: "Every claim should be carefully scrutinized.", zh: "每项主张都应该受到仔细审查。" },
-            { en: "She scrutinized his face for signs of doubt.", zh: "她仔细观察他的脸，寻找怀疑的迹象。" }
-          ], synonyms: [{ word: "inspect", note: "检查" }, { word: "examine", note: "审视" }], confusables: [{ word: "summarize", note: "总结" }, { word: "standardize", note: "标准化" }] },
-          { id: "inevitable", word: "inevitable", phonetic: "/ɪnˈevɪtəbəl/", audioBase64: "", partOfSpeech: "adj.", meaning: "不可避免的；必然发生的", analysis: "in-（不）+ evitable（可避免的）。常见结构 it is inevitable that...。", examples: [
-            { en: "Some degree of uncertainty is inevitable.", zh: "一定程度的不确定性不可避免。" },
-            { en: "It was inevitable that costs would rise.", zh: "成本上涨是不可避免的。" },
-            { en: "Change is not only possible but inevitable.", zh: "变化不仅可能发生，而且必然发生。" }
-          ], synonyms: [{ word: "unavoidable", note: "无法避免的" }, { word: "certain", note: "必然的" }], confusables: [{ word: "invaluable", note: "极宝贵的" }, { word: "invisible", note: "看不见的" }] }
-        ]
-      },
-      {
-        id: "business-core", name: "商务英语核心", description: "会议、产品与管理高频词", builtin: true,
-        words: [
-          { id: "leverage", word: "leverage", phonetic: "/ˈlevərɪdʒ/", audioBase64: "", partOfSpeech: "v./n.", meaning: "充分利用；杠杆作用", analysis: "商务语境中常作动词，表示利用已有资源获得更大效果。", examples: [
-            { en: "We can leverage the platform to reach new customers.", zh: "我们可以利用这个平台触达新客户。" },
-            { en: "The team leveraged its technical expertise.", zh: "团队充分利用了自身的技术专长。" },
-            { en: "Debt increases financial leverage.", zh: "债务会提高财务杠杆。" }
-          ], synonyms: [{ word: "utilize", note: "利用" }, { word: "capitalize on", note: "善用机会" }], confusables: [{ word: "coverage", note: "覆盖；保险范围" }, { word: "average", note: "平均的" }] },
-          { id: "viable", word: "viable", phonetic: "/ˈvaɪəbəl/", audioBase64: "", partOfSpeech: "adj.", meaning: "可行的；能够成功的", analysis: "比 possible 更强调方案在成本、资源和现实条件下能够存活并成功。", examples: [
-            { en: "We need a commercially viable solution.", zh: "我们需要一个商业上可行的解决方案。" },
-            { en: "The plan is no longer financially viable.", zh: "这项计划在财务上已不可行。" },
-            { en: "Solar power is a viable alternative.", zh: "太阳能是一种可行的替代方案。" }
-          ], synonyms: [{ word: "feasible", note: "可实施的" }, { word: "workable", note: "行得通的" }], confusables: [{ word: "visible", note: "可见的" }, { word: "vital", note: "至关重要的" }] },
-          { id: "align", word: "align", phonetic: "/əˈlaɪn/", audioBase64: "", partOfSpeech: "v.", meaning: "使一致；对齐；协调", analysis: "管理语境常用 align A with B，指目标、资源或行动保持一致。", examples: [
-            { en: "The project must align with our strategy.", zh: "这个项目必须与我们的战略一致。" },
-            { en: "We need to align incentives across teams.", zh: "我们需要协调各团队的激励机制。" },
-            { en: "Please align the text to the left.", zh: "请把文字左对齐。" }
-          ], synonyms: [{ word: "coordinate", note: "协调" }, { word: "match", note: "匹配" }], confusables: [{ word: "assign", note: "分配" }, { word: "alien", note: "陌生的；外星人" }] },
-          { id: "constraint", word: "constraint", phonetic: "/kənˈstreɪnt/", audioBase64: "", partOfSpeech: "n.", meaning: "限制条件；约束", analysis: "强调限制选择空间的条件，例如预算、时间、法规或算力。", examples: [
-            { en: "Time is our biggest constraint.", zh: "时间是我们最大的限制条件。" },
-            { en: "The design works within strict budget constraints.", zh: "该设计在严格的预算约束内可行。" },
-            { en: "Supply constraints delayed production.", zh: "供应限制导致生产延误。" }
-          ], synonyms: [{ word: "restriction", note: "限制" }, { word: "limitation", note: "局限" }], confusables: [{ word: "construct", note: "建造" }, { word: "contrast", note: "对比" }] },
-          { id: "incentive", word: "incentive", phonetic: "/ɪnˈsentɪv/", audioBase64: "", partOfSpeech: "n.", meaning: "激励；刺激；鼓励因素", analysis: "既可指奖金等外部奖励，也可指促使某人行动的利益或动机。", examples: [
-            { en: "The bonus gives employees an incentive to improve.", zh: "奖金能激励员工改进表现。" },
-            { en: "There is little incentive to take unnecessary risks.", zh: "人们没有多少动力去承担不必要的风险。" },
-            { en: "Tax incentives attracted new investment.", zh: "税收优惠吸引了新的投资。" }
-          ], synonyms: [{ word: "motivation", note: "动机" }, { word: "stimulus", note: "刺激因素" }], confusables: [{ word: "intensive", note: "密集的" }, { word: "initiative", note: "主动性；倡议" }] },
-          { id: "scalable", word: "scalable", phonetic: "/ˈskeɪləbəl/", audioBase64: "", partOfSpeech: "adj.", meaning: "可扩展的；能规模化的", analysis: "系统、流程或商业模式在用户量增长时仍能维持效率和质量。", examples: [
-            { en: "The service needs a scalable architecture.", zh: "这项服务需要可扩展的架构。" },
-            { en: "They are looking for a scalable business model.", zh: "他们正在寻找能够规模化的商业模式。" },
-            { en: "Manual review is accurate but not scalable.", zh: "人工审核很准确，但难以规模化。" }
-          ], synonyms: [{ word: "expandable", note: "可扩展的" }, { word: "growth-ready", note: "可支持增长的" }], confusables: [{ word: "saleable", note: "适销的" }, { word: "stable", note: "稳定的" }] }
-        ]
-      }
-    ];
+    const REMOVED_BUILTIN_BOOK_IDS = ["cet6-focus", "business-core"];
 
     const BUNDLED_BOOKS = [
-      { id: "n2607", version: "2026.07.20.1", url: "./n2607.json" }
+      { id: "n2607", version: "2026.07.20.1", url: "./n2607.json" },
+      { id: "n2512", version: "2026.07.20.1", url: "./n2512.json" }
     ];
 
     function openDB() {
@@ -883,8 +800,7 @@
     async function init() {
       try {
         state.db = await openDB();
-        const books = await getAll("books");
-        if (!books.length) for (const book of BUILTIN_BOOKS) await put("books", book);
+        for (const id of REMOVED_BUILTIN_BOOK_IDS) await remove("books", id);
         await ensureBundledBooks();
         state.books = await getAll("books");
         state.settings = await get("meta", "settings");
@@ -1061,7 +977,7 @@
         <div class="progress-track"><div class="progress-fill" style="width:${c.percent}%"></div></div>
         ${railHTML()}
         <article class="card study-card">
-          <div class="study-top"><div><h1 class="word">${esc(word.word)}</h1><p class="phonetic">${esc(word.phonetic)}</p></div><button class="audio-btn" type="button" id="audioButton" aria-label="播放 ${esc(word.word)} 的发音">▶</button></div>
+          <div class="study-top"><h1 class="word">${esc(word.word)}</h1><div class="pronunciation-row"><p class="phonetic">${esc(word.phonetic)}</p><button class="audio-btn" type="button" id="audioButton" aria-label="播放 ${esc(word.word)} 的发音">▶</button></div></div>
           ${showDetail ? wordDetailHTML(word) : `<div class="reveal-placeholder"><div><b>先回忆这个词的含义</b><p class="sub">想好后再显示答案</p></div></div>`}
         </article>
         ${isReview && !state.revealed ? `<div class="actions single"><button class="primary block" type="button" id="revealButton">显示答案</button></div>` : `<div class="actions"><button class="secondary" type="button" id="againButton">${isReview ? "还不熟" : "再看看"}</button><button class="primary" type="button" id="knowButton">${isReview ? "认识" : "记住了"}</button></div>`}
@@ -1131,10 +1047,18 @@
       } catch { fallback(); }
     }
 
+    function scrollStudyCardToTop() {
+      requestAnimationFrame(() => {
+        const card = $(".study-card");
+        if (card) card.scrollIntoView({ behavior: "smooth", block: "start" });
+      });
+    }
+
     async function rateWord(known) {
       const word = currentWord();
       if (!word) return;
       const s = state.session;
+      const shouldScrollToNextWord = s.stage === "learn" && known;
       const key = `${state.book.id}:${word.id}`;
       const progress = await get("progress", key) || { key, bookId: state.book.id, wordId: word.id, reviewCount: 0, exposures: 0, correct: 0, wrong: 0 };
       progress.lastSeen = localDate();
@@ -1158,6 +1082,7 @@
       await put("progress", progress);
       state.revealed = false;
       await advanceStage();
+      if (shouldScrollToNextWord) scrollStudyCardToTop();
     }
 
     async function advanceStage() {

@@ -249,7 +249,7 @@
     .start-button { margin-top: 17px; }
     button:disabled { cursor: default; opacity: .55; transform: none !important; }
 
-    .study-card { overflow: hidden; scroll-margin-top: 82px; }
+    .study-card { overflow: hidden; }
     .study-top {
       padding: 24px 22px 18px;
     }
@@ -288,7 +288,6 @@
       font-weight: 650;
       line-height: 1.6;
     }
-    .meaning .pos { margin-right: 7px; color: var(--indigo); font-weight: 850; }
     .analysis { margin: 13px 0 0; color: #4b5161; font-size: 14px; line-height: 1.7; }
     .reveal-placeholder {
       display: grid;
@@ -711,8 +710,8 @@
     const REMOVED_BUILTIN_BOOK_IDS = ["cet6-focus", "business-core"];
 
     const BUNDLED_BOOKS = [
-      { id: "n2607", version: "2026.07.21.1", url: "./n2607.json" },
-      { id: "n2512", version: "2026.07.21.1", url: "./n2512.json" }
+      { id: "n2607", version: "2026.07.23.2", url: "./n2607.json" },
+      { id: "n2512", version: "2026.07.23.2", url: "./n2512.json" }
     ];
 
     function openDB() {
@@ -1010,7 +1009,7 @@
     }
 
     function wordDetailHTML(word) {
-      return `<div class="word-detail"><p class="meaning"><span class="pos">${esc(word.partOfSpeech)}</span>${esc(word.meaning)}</p>${word.analysis ? `<p class="analysis">${esc(word.analysis)}</p>` : ""}</div>
+      return `<div class="word-detail"><p class="meaning">${esc(word.meaning)}</p>${word.analysis ? `<p class="analysis">${esc(word.analysis)}</p>` : ""}</div>
         ${phraseSectionHTML(word)}
         <details class="info-section" open><summary>例句 · ${word.examples.length}</summary><div class="detail-body">${word.examples.map(x => `<div class="example"><p>${highlightWord(x.en, word.word)}</p><small>${esc(x.zh)}</small></div>`).join("")}</div></details>
         <details class="info-section" open><summary>近义词</summary><div class="detail-body"><div class="chip-list">${word.synonyms.length ? word.synonyms.map(x => `<span class="chip"><b>${esc(x.word)}</b>${x.note ? ` · ${esc(x.note)}` : ""}</span>`).join("") : "暂无"}</div></div></details>
@@ -1048,10 +1047,23 @@
     }
 
     function scrollStudyCardToTop() {
-      requestAnimationFrame(() => {
+      clearTimeout(scrollStudyCardToTop.timer);
+      const align = () => {
         const card = $(".study-card");
-        if (card) card.scrollIntoView({ behavior: "smooth", block: "start" });
+        if (!card) return;
+        const headerBottom = $(".header")?.getBoundingClientRect().bottom || 0;
+        const gap = 10;
+        const delta = card.getBoundingClientRect().top - headerBottom - gap;
+        if (Math.abs(delta) > 1) {
+          window.scrollTo({ top: Math.max(0, window.scrollY + delta), behavior: "auto" });
+        }
+      };
+      requestAnimationFrame(() => {
+        align();
+        requestAnimationFrame(align);
       });
+      // .screen has a short translate animation; correct once it has fully settled.
+      scrollStudyCardToTop.timer = setTimeout(align, 220);
     }
 
     async function rateWord(known) {
@@ -1150,7 +1162,7 @@
           else if (answered && option === state.selectedAnswer) cls = "wrong";
           return `<button class="option ${cls}" type="button" data-option="${esc(option)}" ${answered ? "disabled" : ""}>${esc(option)}</button>`;
         }).join("")}</div>
-        ${answered ? `<div class="answer-note"><b>${isCorrect ? "回答正确" : "正确答案"}</b>：${esc(word.partOfSpeech)} ${esc(word.meaning)}${!isCorrect ? "<br>这个词已加入本轮加练。" : ""}</div><div class="actions single"><button class="primary block" type="button" id="nextQuestion">${s.quizIndex + 1 >= s.quizQueue.length ? "完成今日学习" : "下一题"}</button></div>` : ""}
+        ${answered ? `<div class="answer-note"><b>${isCorrect ? "回答正确" : "正确答案"}</b>：${esc(word.meaning)}${!isCorrect ? "<br>这个词已加入本轮加练。" : ""}</div><div class="actions single"><button class="primary block" type="button" id="nextQuestion">${s.quizIndex + 1 >= s.quizQueue.length ? "完成今日学习" : "下一题"}</button></div>` : ""}
       </section>`;
       if (!answered) $$(".option").forEach(btn => btn.addEventListener("click", () => answerQuiz(btn.dataset.option)));
       else $("#nextQuestion").addEventListener("click", nextQuiz);
@@ -1198,7 +1210,7 @@
         <div class="card spelling-card">
           <span class="quiz-kind">第二轮 · 拼写</span>
           <p class="spelling-hint">根据中文意思写出英文单词</p>
-          <div class="spelling-meaning"><span class="pos">${esc(word.partOfSpeech)}</span> ${esc(word.meaning)}</div>
+          <div class="spelling-meaning">${esc(word.meaning)}</div>
           <p class="spelling-hint">${word.word.length} 个字母${word.phonetic ? ` · 音标 ${esc(word.phonetic)}` : ""}</p>
           <form class="spelling-form" id="spellingForm">
             <input class="spelling-input ${answered ? (isCorrect ? "correct" : "wrong") : ""}" id="spellingInput" name="spelling" type="text" value="${esc(state.selectedAnswer || "")}" placeholder="输入英文单词" autocomplete="off" autocapitalize="none" spellcheck="false" enterkeyhint="done" ${answered ? "disabled" : ""} aria-label="输入对应英文单词">
@@ -1293,7 +1305,7 @@
           const learnedLabel = p.learnedDate === localDate() ? "今天学过" : `${dateLabel(p.learnedDate)} 学过`;
           const searchText = `${word.word} ${word.phonetic} ${word.meaning} ${word.analysis} ${(word.phrases || []).map(x => `${x.en} ${x.zh}`).join(" ")} ${word.etymology?.root || ""} ${word.etymology?.explanation || ""}`.toLowerCase();
           return `<details class="review-card" data-review-search="${esc(searchText)}">
-            <summary><div><div class="review-word"><b>${esc(word.word)}</b><span>${esc(word.phonetic)}</span></div><p class="review-meaning"><span class="pos">${esc(word.partOfSpeech)}</span> ${esc(word.meaning)}</p></div><div class="review-meta"><button class="mini-audio" type="button" data-review-audio="${esc(word.id)}" aria-label="播放 ${esc(word.word)} 的发音">▶</button><span>${learnedLabel}</span></div></summary>
+            <summary><div><div class="review-word"><b>${esc(word.word)}</b><span>${esc(word.phonetic)}</span></div><p class="review-meaning">${esc(word.meaning)}</p></div><div class="review-meta"><button class="mini-audio" type="button" data-review-audio="${esc(word.id)}" aria-label="播放 ${esc(word.word)} 的发音">▶</button><span>${learnedLabel}</span></div></summary>
             <div class="review-detail">${word.analysis ? `<p class="analysis">${esc(word.analysis)}</p>` : ""}${phraseSectionHTML(word, true)}${word.examples.map(x => `<div class="example"><p>${highlightWord(x.en, word.word)}</p><small>${esc(x.zh)}</small></div>`).join("")}<div class="chip-list">${word.synonyms.map(x => `<span class="chip"><b>${esc(x.word)}</b>${x.note ? ` · ${esc(x.note)}` : ""}</span>`).join("")}${word.confusables.map(x => `<span class="chip"><b>${esc(x.word)}</b>${x.note ? ` · ${esc(x.note)}` : ""}</span>`).join("")}</div>${etymologySectionHTML(word, true)}</div>
           </details>`;
         }).join("") : `<div class="card empty"><h2>${state.reviewFilter === "today" ? "今天还没有学过单词" : "这个范围内还没有单词"}</h2><p>完成学习后，单词会自动出现在这里。</p><button class="primary small-button" type="button" id="goStudy">去今日学习</button></div>`}</div>
@@ -1406,7 +1418,7 @@
         return {
           id: String(item.id || item.word.toLowerCase()).replace(/\s+/g, "-"), word: String(item.word),
           phonetic: String(item.phonetic || item.ipa || ""), audioBase64: String(item.audioBase64 || item.audio || ""),
-          partOfSpeech: String(item.partOfSpeech || item.pos || ""), meaning: String(item.meaning || item.definition || item.translation || ""),
+          meaning: String(item.meaning || item.definition || item.translation || ""),
           analysis: String(item.analysis || item.explanation || ""), phrases, examples, synonyms: list(item.synonyms), confusables: list(item.confusables || item.similarWords), etymology
         };
       });
@@ -1439,7 +1451,7 @@
     }
 
     function downloadTemplate() {
-      const sample = { id: "my-wordbook", name: "我的单词书", description: "JSON 格式样例", words: [{ id: "resilient", word: "resilient", phonetic: "/rɪˈzɪliənt/", audioBase64: "在这里填写MP3文件的Base64字符串", partOfSpeech: "adj.", meaning: "有韧性的；能迅速恢复的", analysis: "resilient 强调人在压力后恢复，或系统在故障后继续工作的能力。它常修饰 person、community、system、economy 和 material。理解时可把“承受冲击”与“随后恢复”看成一个完整过程。", phrases: [{ en: "a resilient system", zh: "有韧性的系统；发生故障后仍能恢复" }, { en: "remain resilient", zh: "在压力或变化中保持韧性" }, { en: "a resilient community", zh: "遭遇冲击后能够恢复的社区" }], examples: [{ en: "A resilient system learns from failure.", zh: "有韧性的系统会从失败中学习。" }, { en: "She remained resilient under pressure.", zh: "她在压力下依然坚韧。" }, { en: "The economy is surprisingly resilient.", zh: "该经济体的韧性出人意料。" }, { en: "Resilient materials return to their original shape.", zh: "有弹性的材料会恢复原状。" }, { en: "The community proved resilient after the storm.", zh: "风暴过后，这个社区展现出强大的恢复力。" }], synonyms: [{ word: "robust", note: "强健稳定的" }], confusables: [{ word: "resistant", note: "抵抗的" }], etymology: { root: "resile", rootMeaning: "v. 弹回；恢复", explanation: "来自拉丁语 resilire，字面含义是“向后跳、弹回”；resile + -ent 构成 resilient。", cognates: [{ word: "resilience", note: "韧性；恢复力" }], memory: "把它想成被压弯后仍会弹回原状。" } }] };
+      const sample = { id: "my-wordbook", name: "我的单词书", description: "JSON 格式样例", words: [{ id: "resilient", word: "resilient", phonetic: "/rɪˈzɪliənt/", audioBase64: "在这里填写MP3文件的Base64字符串", meaning: "adj. 有韧性的；能迅速恢复的", analysis: "resilient 强调人在压力后恢复，或系统在故障后继续工作的能力。它常修饰 person、community、system、economy 和 material。理解时可把“承受冲击”与“随后恢复”看成一个完整过程。", phrases: [{ en: "a resilient system", zh: "有韧性的系统；发生故障后仍能恢复" }, { en: "remain resilient", zh: "在压力或变化中保持韧性" }, { en: "a resilient community", zh: "遭遇冲击后能够恢复的社区" }], examples: [{ en: "A resilient system learns from failure.", zh: "有韧性的系统会从失败中学习。" }, { en: "She remained resilient under pressure.", zh: "她在压力下依然坚韧。" }, { en: "The economy is surprisingly resilient.", zh: "该经济体的韧性出人意料。" }, { en: "Resilient materials return to their original shape.", zh: "有弹性的材料会恢复原状。" }, { en: "The community proved resilient after the storm.", zh: "风暴过后，这个社区展现出强大的恢复力。" }], synonyms: [{ word: "robust", note: "强健稳定的" }], confusables: [{ word: "resistant", note: "抵抗的" }], etymology: { root: "resile", rootMeaning: "v. 弹回；恢复", explanation: "来自拉丁语 resilire，字面含义是“向后跳、弹回”；resile + -ent 构成 resilient。", cognates: [{ word: "resilience", note: "韧性；恢复力" }], memory: "把它想成被压弯后仍会弹回原状。" } }] };
       downloadFile("wordbook-sample.json", JSON.stringify(sample, null, 2));
     }
 

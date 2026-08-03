@@ -34,6 +34,9 @@
   "creatures": {
     "small": { "rows": ["sprat", "clown", "angel", "puffer"], "sourceSwimFrames": 8, "runtimeSwimFrames": 16, "sourceIdleFrames": 4, "runtimeIdleFrames": 8 },
     "large": { "rows": ["tuna", "ray", "shark", "eel"], "sourceSwimFrames": 8, "runtimeSwimFrames": 16, "sourceIdleFrames": 4, "runtimeIdleFrames": 8 },
-    "other": { "rows": ["turtle", "jelly", "crab"], "sourceSwimFrames": 8, "runtimeSwimFrames": 16, "sourceIdleFrames": 4, "runtimeIdleFrames": 8 }
+    "other": { "rows": ["turtle", "jelly", "crab"], "sourceSwimFrames": 8, "runtimeSwimFrames": 16, "sourceIdleFrames": 4, "runtimeIdleFrames": 8 },
+    "overrides": {
+      "turtle": { "asset": "turtle-swim-ai-repaired-10x4-sheet.png", "columns": 10, "rows": 4, "runtimeSwimFrames": 40, "fps": 12, "loop": true, "identitySource": "user-provided turtle.mp4 + built-in GPT Image repair", "backgroundRemoval": "chroma-keyed AI repair + soft matte", "loopSelection": "best matching 3.33 second cycle" }
+    }
   }
 }

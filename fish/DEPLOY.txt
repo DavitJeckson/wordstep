@@ -1,0 +1,9 @@
+深海猎手：静态 HTTP 发布包
+
+部署方法：
+1. 将本目录中的全部文件和文件夹上传到静态网站目录。
+2. 保持 assets、game-assets 等目录结构不变。
+3. 通过 HTTP 或 HTTPS 访问 index.html；不要直接使用 file:// 打开。
+
+兼容：Nginx、Apache、Caddy、GitHub Pages、Cloudflare Pages、对象存储静态托管和 Python http.server。
+本游戏不需要 Node.js、数据库或服务端 API。

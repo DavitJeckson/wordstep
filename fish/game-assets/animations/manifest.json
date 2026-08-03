@@ -1,0 +1,34 @@
+{
+  "cell": { "width": 256, "height": 192 },
+  "hero": {
+    "hero-base-sheet.png": {
+      "columns": 10,
+      "rows": [
+        { "action": "idle", "frameCount": 6, "fps": 5, "loop": true },
+        { "action": "swim", "frameCount": 10, "fps": 10, "loop": true },
+        { "action": "sprint", "frameCount": 7, "fps": 14, "loop": true }
+      ]
+    },
+    "hero-actions-sheet.png": {
+      "columns": 10,
+      "rows": [
+        { "action": "turn", "frameCount": 7, "fps": 14, "loop": false },
+        { "action": "eat", "frameCount": 9, "fps": 14, "loop": false },
+        { "action": "hurt", "frameCount": 5, "fps": 10, "loop": false }
+      ]
+    },
+    "hero-defeat-sheet.png": {
+      "columns": 6,
+      "rows": 2,
+      "action": "death",
+      "frameCount": 12,
+      "fps": 8,
+      "loop": false
+    }
+  },
+  "creatures": {
+    "small": { "rows": ["sprat", "clown", "angel", "puffer"], "swimFrames": 8, "idleFrames": 4 },
+    "large": { "rows": ["tuna", "ray", "shark", "eel"], "swimFrames": 8, "idleFrames": 4 },
+    "other": { "rows": ["turtle", "jelly", "crab"], "swimFrames": 8, "idleFrames": 4 }
+  }
+}

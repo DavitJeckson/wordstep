@@ -26,9 +26,14 @@
       "loop": false
     }
   },
+  "smoothing": {
+    "method": "brightness-normalized premultiplied-alpha midpoint interpolation",
+    "insertedFramesPerPair": 1,
+    "runtimeCrossfade": false
+  },
   "creatures": {
-    "small": { "rows": ["sprat", "clown", "angel", "puffer"], "swimFrames": 8, "idleFrames": 4 },
-    "large": { "rows": ["tuna", "ray", "shark", "eel"], "swimFrames": 8, "idleFrames": 4 },
-    "other": { "rows": ["turtle", "jelly", "crab"], "swimFrames": 8, "idleFrames": 4 }
+    "small": { "rows": ["sprat", "clown", "angel", "puffer"], "sourceSwimFrames": 8, "runtimeSwimFrames": 16, "sourceIdleFrames": 4, "runtimeIdleFrames": 8 },
+    "large": { "rows": ["tuna", "ray", "shark", "eel"], "sourceSwimFrames": 8, "runtimeSwimFrames": 16, "sourceIdleFrames": 4, "runtimeIdleFrames": 8 },
+    "other": { "rows": ["turtle", "jelly", "crab"], "sourceSwimFrames": 8, "runtimeSwimFrames": 16, "sourceIdleFrames": 4, "runtimeIdleFrames": 8 }
   }
 }

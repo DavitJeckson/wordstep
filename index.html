@@ -891,6 +891,20 @@
       }));
     }
 
+    function recentReviewPlan(allProgress) {
+      const availableWordIds = new Set(state.book.words.map(word => word.id));
+      const eligible = allProgress.filter(progress => progress.learnedDate
+        && progress.learnedDate < localDate()
+        && !progress.relearnQueuedAt
+        && !progress.skippedAt
+        && availableWordIds.has(progress.wordId));
+      const sourceDate = eligible.reduce((latest, progress) => progress.learnedDate > latest ? progress.learnedDate : latest, "");
+      return {
+        sourceDate: sourceDate || null,
+        reviewIds: sourceDate ? eligible.filter(progress => progress.learnedDate === sourceDate).map(progress => progress.wordId) : []
+      };
+    }
+
     async function upgradeSession(session) {
       let changed = false;
       if (!Array.isArray(session.quizAnswers)) { session.quizAnswers = []; changed = true; }
@@ -917,6 +931,29 @@
         changed = true;
       }
       if (session.quizVersion === 2 && !session.quizMode) { session.quizMode = "choice"; changed = true; }
+      if (!Object.prototype.hasOwnProperty.call(session, "reviewSourceDate")) {
+        if (session.reviewIds?.length) {
+          session.reviewSourceDate = localDate(-1);
+          changed = true;
+        } else {
+          const untouched = (session.reviewIndex || 0) === 0
+            && !(session.reviewDone || []).length
+            && (session.learnIndex || 0) === 0
+            && (session.quizIndex || 0) === 0
+            && !(session.quizAnswers || []).length;
+          const allProgress = untouched ? (await getAll("progress")).filter(progress => progress.bookId === state.book.id) : [];
+          const reviewPlan = recentReviewPlan(allProgress);
+          session.reviewSourceDate = reviewPlan.sourceDate;
+          if (untouched && reviewPlan.reviewIds.length) {
+            session.reviewIds = reviewPlan.reviewIds;
+            if (session.completed) await remove("activity", session.id);
+            session.stage = "review";
+            session.completed = false;
+            delete session.completedAt;
+          }
+          changed = true;
+        }
+      }
       if (changed) await put("sessions", session);
       return session;
     }
@@ -927,8 +964,8 @@
       if (session) return upgradeSession(session);
       const allProgress = (await getAll("progress")).filter(p => p.bookId === state.book.id);
       const progressByWord = new Map(allProgress.map(p => [p.wordId, p]));
-      const yesterday = localDate(-1);
-      const reviewIds = allProgress.filter(p => p.learnedDate === yesterday && !p.relearnQueuedAt && !p.skippedAt).map(p => p.wordId).filter(id => state.book.words.some(w => w.id === id));
+      const reviewPlan = recentReviewPlan(allProgress);
+      const reviewIds = reviewPlan.reviewIds;
       const pendingWords = state.book.words.filter(word => {
         const progress = progressByWord.get(word.id);
         return !progress?.skippedAt && (!progress?.learnedDate || progress.relearnQueuedAt);
@@ -941,7 +978,7 @@
       });
       const newIds = pendingWords.slice(0, state.settings.dailyNew).map(w => w.id);
       session = {
-        id, bookId: state.book.id, date: localDate(), reviewIds, newIds,
+        id, bookId: state.book.id, date: localDate(), reviewSourceDate: reviewPlan.sourceDate, reviewIds, newIds,
         stage: reviewIds.length ? "review" : newIds.length ? "learn" : "complete",
         reviewIndex: 0, reviewDone: [], reviewKnown: 0,
         learnQueue: [...newIds], learnIndex: 0, learnDone: [], repeats: {},
@@ -991,7 +1028,7 @@
       const s = state.session;
       const c = sessionCounts();
       const stages = [
-        { id: "review", label: "昨日复习", count: c.review },
+        { id: "review", label: reviewStageLabel(), count: c.review },
         { id: "learn", label: "今日学习", count: c.learn },
         { id: "quiz", label: "今日测验", count: c.quiz }
       ];
@@ -1011,13 +1048,16 @@
       const c = sessionCounts();
       if (state.session.completed) return renderSummary();
       const action = c.done ? "继续今日任务" : "开始今日任务";
+      const sourceDate = state.session.reviewSourceDate;
+      const reviewTitle = sourceDate === localDate(-1) ? "复习昨天学过的词" : sourceDate ? "复习最近一次学过的词" : "复习最近学过的词";
+      const reviewCopy = c.review && sourceDate ? `${dateLabel(sourceDate)} 学过的单词` : "还没有可复习的历史单词";
       main.innerHTML = `<section class="screen">
         <p class="eyebrow">DAILY ROUTINE</p>
         <div class="today-head"><div><h1>今日学习</h1><p class="sub">${dateLabel(localDate())} · 按节奏完成三步</p></div><div class="today-number"><strong>${c.done}</strong><span>/ ${c.total}</span></div></div>
         <div class="progress-track" aria-label="今日进度"><div class="progress-fill" style="width:${c.percent}%"></div></div>
         ${railHTML()}
         <div class="card dashboard-card">
-          <div class="flow-row"><div class="flow-icon">↺</div><div><h3>复习昨天学过的词</h3><p>${c.review ? "先唤醒短期记忆" : "昨天没有待复习词"}</p></div><div class="flow-count">${c.review}</div></div>
+          <div class="flow-row"><div class="flow-icon">↺</div><div><h3>${reviewTitle}</h3><p>${reviewCopy}</p></div><div class="flow-count">${c.review}</div></div>
           <div class="flow-row"><div class="flow-icon">Aa</div><div><h3>学习今天的新词</h3><p>详细解析、常用短语、例句、辨析与词源</p></div><div class="flow-count">${c.learn}</div></div>
           <div class="flow-row"><div class="flow-icon">✓</div><div><h3>完成当天测验</h3><p>释义选择 + 中文提示拼写</p></div><div class="flow-count">${c.quiz}</div></div>
           <button class="primary block start-button" type="button" id="startFlow">${action} · ${stageLabel(state.session.stage)}</button>
@@ -1026,7 +1066,16 @@
       $("#startFlow").addEventListener("click", () => { state.flowOpen = true; state.revealed = false; render(); });
     }
 
-    function stageLabel(stage) { return ({ review: "昨日复习", learn: "今日学习", quiz: "今日测验", complete: "已完成" })[stage] || "继续"; }
+    function reviewStageLabel() {
+      const sourceDate = state.session?.reviewSourceDate;
+      if (sourceDate === localDate(-1)) return "昨日复习";
+      return sourceDate ? `${dateLabel(sourceDate)} 复习` : "近期复习";
+    }
+
+    function stageLabel(stage) {
+      if (stage === "review") return reviewStageLabel();
+      return ({ learn: "今日学习", quiz: "今日测验", complete: "已完成" })[stage] || "继续";
+    }
 
     function renderFlow() {
       if (state.session.stage === "quiz") return renderQuiz();
@@ -1357,7 +1406,7 @@
       main.innerHTML = `<section class="screen">
         <p class="eyebrow">DAILY COMPLETE</p>
         <div class="card summary-card">
-          <div class="summary-mark">✓</div><h1>今天完成了</h1><p class="sub">复习、学习、测验全部结束。明天会先复习今天的新词。</p>
+          <div class="summary-mark">✓</div><h1>今天完成了</h1><p class="sub">复习、学习、测验全部结束。下次学习会先复习最近一次学过的词。</p>
           <div class="score-grid"><div class="score-item"><b>${s.reviewDone.length}</b><small>已复习</small></div><div class="score-item"><b>${s.learnDone.length}</b><small>新学词</small></div><div class="score-item"><b>${accuracy}%</b><small>综合正确率</small></div></div>
           <button class="primary block" type="button" id="viewStats">查看学习统计</button>
         </div>

@@ -755,13 +755,16 @@
     const state = { db: null, books: [], book: null, settings: null, session: null, tab: "today", flowOpen: false, revealed: false, quizAnswered: false, selectedAnswer: null, reviewFilter: "today", reviewQuery: "" };
 
     const REMOVED_BUILTIN_BOOK_IDS = ["cet6-focus", "business-core"];
+    const CUSTOM_BOOK_CATALOG_KEY = "custom-book-catalog";
 
     const BUNDLED_BOOKS = [
-      { id: "n2607", version: "2026.07.24.1", url: "./n2607.json" },
-      { id: "n2512", version: "2026.07.24.1", url: "./n2512.json" },
-	  { id: "gre3000", version: "2026.07.24.1", url: "./gre3000.json" },
-	  { id: "cet6_2000", version: "2026.07.25.1", url: "./cet6_2000.json" },
-	  { id: "plant1000", version: "2026.07.25.1", url: "./plant1000.json" }
+      { order: 1, id: "middle_school", name: "初中英语 2000", description: "初中英语核心词汇，含英美音标、核心释义、详细解析、短语、双语例句、辨析与构词记忆", wordCount: 1950, version: "2026.08.09.1", url: "./middle_school_2000.json" },
+      { order: 2, id: "hight_school_2000", name: "高中英语 2000", description: "高中英语、高考核心词汇，不含初中阶段的词汇。", wordCount: 2240, version: "2026.08.09.1", url: "./hight_school_2000.json" },
+      { order: 3, id: "cet6_2000", name: "CET6 2000", description: "大学英语六级核心词汇，含短语、详细解析、同义词辨析、易混词、词源与例句", wordCount: 2306, version: "2026.07.25.1", url: "./cet6_2000.json" },
+      { order: 4, id: "gre3000", name: "GRE 3000", description: "GRE 核心词汇，含短语、详细解析、同义词辨析、易混词、词源典故与多义例句", wordCount: 3312, version: "2026.07.24.1", url: "./gre3000.json" },
+      { order: 5, id: "n2512", name: "N2512", description: "综合阅读与表达词汇，含短语、词源、辨析与多义例句", wordCount: 1014, version: "2026.07.24.1", url: "./n2512.json" },
+      { order: 6, id: "n2607", name: "N2607", description: "AI、技术、商业与通识阅读词汇，含短语、词源与多义例句", wordCount: 748, version: "2026.07.24.1", url: "./n2607.json" },
+      { order: 7, id: "plant1000", name: "Plant 1000", description: "植物主题词汇，涵盖花卉、树木、蔬果与药用植物，含分类、形态、分布、典故、特性及例句", wordCount: 1000, version: "2026.07.25.1", url: "./plant1000.json" }
     ];
 
     function openDB() {
@@ -832,38 +835,98 @@
       toast.timer = setTimeout(() => el.classList.add("hidden"), 2600);
     }
 
-    async function ensureBundledBooks() {
-      for (const source of BUNDLED_BOOKS) {
-        const existing = await get("books", source.id);
-        if (existing?.version === source.version) continue;
-        try {
-          const response = await fetch(source.url, { cache: "no-cache" });
-          if (!response.ok) throw new Error(`HTTP ${response.status}`);
-          const book = await response.json();
-          if (book.id !== source.id || !Array.isArray(book.words) || !book.words.length) {
-            throw new Error("词书格式无效");
-          }
-          book.version = source.version;
-          book.builtin = true;
-          await put("books", book);
-        } catch (error) {
-          console.warn(`无法载入内置词书 ${source.id}`, error);
-        }
+    function withBundledMetadata(book, source) {
+      return { ...book, id: source.id, name: source.name, description: source.description, wordCount: source.wordCount, order: source.order, version: source.version, builtin: true };
+    }
+
+    async function loadBundledBook(source) {
+      const existing = await get("books", source.id);
+      if (existing?.version === source.version && Array.isArray(existing.words) && existing.words.length) {
+        return withBundledMetadata(existing, source);
       }
+      try {
+        const response = await fetch(source.url, { cache: "no-cache" });
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const rawBook = await response.json();
+        if (!Array.isArray(rawBook.words) || !rawBook.words.length) throw new Error("词书格式无效");
+        const book = withBundledMetadata(rawBook, source);
+        await put("books", book);
+        return book;
+      } catch (error) {
+        if (Array.isArray(existing?.words) && existing.words.length) {
+          console.warn(`无法更新内置词书 ${source.id}，使用本地缓存`, error);
+          return withBundledMetadata(existing, source);
+        }
+        throw error;
+      }
+    }
+
+    async function loadBookById(id) {
+      const source = BUNDLED_BOOKS.find(book => book.id === id);
+      if (source) return loadBundledBook(source);
+      const book = await get("books", id);
+      if (!book?.words?.length) throw new Error("词书不存在或内容为空");
+      return book;
+    }
+
+    function customBookMetadata(book) {
+      return {
+        id: book.id,
+        name: book.name,
+        description: book.description || "自定义 JSON 词书",
+        wordCount: book.words?.length || book.wordCount || 0,
+        importedAt: book.importedAt || 0,
+        builtin: false
+      };
+    }
+
+    async function getCustomBookCatalog() {
+      let catalog = await get("meta", CUSTOM_BOOK_CATALOG_KEY);
+      if (!catalog) {
+        const bundledIds = new Set(BUNDLED_BOOKS.map(book => book.id));
+        const books = (await getAll("books"))
+          .filter(book => !bundledIds.has(book.id) && !book.builtin)
+          .map(customBookMetadata);
+        catalog = { key: CUSTOM_BOOK_CATALOG_KEY, books };
+        await put("meta", catalog);
+      }
+      return Array.isArray(catalog.books) ? catalog.books : [];
+    }
+
+    async function saveCustomBookMetadata(book) {
+      if (BUNDLED_BOOKS.some(source => source.id === book.id)) return;
+      const books = await getCustomBookCatalog();
+      const next = books.filter(item => item.id !== book.id);
+      next.push(customBookMetadata(book));
+      await put("meta", { key: CUSTOM_BOOK_CATALOG_KEY, books: next });
+    }
+
+    async function getBookCatalog() {
+      const importedBooks = (await getCustomBookCatalog())
+        .sort((a, b) => (a.importedAt || 0) - (b.importedAt || 0))
+        .map((book, index) => ({
+          order: 1000 + index,
+          ...book
+        }));
+      return [...BUNDLED_BOOKS, ...importedBooks].sort((a, b) => a.order - b.order);
     }
 
     async function init() {
       try {
         state.db = await openDB();
         for (const id of REMOVED_BUILTIN_BOOK_IDS) await remove("books", id);
-        await ensureBundledBooks();
-        state.books = await getAll("books");
         state.settings = await get("meta", "settings");
         if (!state.settings) {
-          state.settings = { key: "settings", activeBookId: state.books[0].id, dailyNew: 20, createdAt: localDate() };
+          state.settings = { key: "settings", activeBookId: BUNDLED_BOOKS[0].id, dailyNew: 20, createdAt: localDate() };
           await put("meta", state.settings);
         }
-        state.book = state.books.find(b => b.id === state.settings.activeBookId) || state.books[0];
+        try {
+          state.book = await loadBookById(state.settings.activeBookId);
+        } catch (error) {
+          console.warn(`无法载入当前词书 ${state.settings.activeBookId}，改用默认词书`, error);
+          state.book = await loadBookById(BUNDLED_BOOKS[0].id);
+        }
+        state.books = BUNDLED_BOOKS.map(book => ({ ...book }));
         state.settings.activeBookId = state.book.id;
         await put("meta", state.settings);
         state.session = await getSession();
@@ -1603,15 +1666,28 @@
     }
 
     async function openBooks() {
-      state.books = await getAll("books");
-      $("#bookList").innerHTML = state.books.map(book => `<button class="book-item ${book.id === state.book.id ? "active" : ""}" type="button" data-book-id="${esc(book.id)}"><div><h3>${esc(book.name)}</h3><p>${book.words.length} 个词 · ${esc(book.description || "自定义词书")}</p></div>${book.id === state.book.id ? `<span class="check">✓</span>` : ""}</button>`).join("");
+      state.books = await getBookCatalog();
+      $("#bookList").innerHTML = state.books.map(book => `<button class="book-item ${book.id === state.book.id ? "active" : ""}" type="button" data-book-id="${esc(book.id)}"><div><h3>${esc(book.name)}</h3><p>${book.wordCount} 个词 · ${esc(book.description)}</p></div>${book.id === state.book.id ? `<span class="check">✓</span>` : ""}</button>`).join("");
       $$("[data-book-id]").forEach(btn => btn.addEventListener("click", () => switchBook(btn.dataset.bookId)));
       bookDialog.showModal();
     }
 
     async function switchBook(id) {
-      const book = state.books.find(b => b.id === id);
-      if (!book || book.id === state.book.id) { bookDialog.close(); return; }
+      if (id === state.book.id) { bookDialog.close(); return; }
+      const catalogBook = state.books.find(book => book.id === id);
+      if (!catalogBook) return;
+      const buttons = $$("[data-book-id]");
+      buttons.forEach(button => { button.disabled = true; });
+      toast(`正在载入《${catalogBook.name}》`);
+      let book;
+      try {
+        book = await loadBookById(id);
+      } catch (error) {
+        console.error(error);
+        buttons.forEach(button => { button.disabled = false; });
+        toast(`无法载入《${catalogBook.name}》`);
+        return;
+      }
       state.book = book;
       state.settings.activeBookId = id;
       await put("meta", state.settings);
@@ -1659,7 +1735,8 @@
         const existing = await get("books", book.id);
         if (existing && !confirm(`词书 ID“${book.id}”已存在，是否覆盖？`)) return;
         await put("books", book);
-        state.books = await getAll("books");
+        await saveCustomBookMetadata(book);
+        state.books = await getBookCatalog();
         await switchBook(book.id);
         toast(`已导入 ${book.words.length} 个单词`);
       } catch (error) { toast(`导入失败：${error.message || "JSON 格式不正确"}`); }

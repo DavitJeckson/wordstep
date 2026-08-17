@@ -2053,8 +2053,10 @@
       const previousActiveBookId = state.settings.activeBookId;
       const buttons = $$("[data-book-id]");
       buttons.forEach(button => { button.disabled = true; });
+      bookDialog.close();
       setLoading(true, `正在加载《${catalogBook.name}》`);
       await waitForPaint();
+      let loadFailed = false;
       try {
         const book = await loadBookById(id);
         state.book = book;
@@ -2063,11 +2065,11 @@
         state.session = await getSession();
         state.tab = "today"; state.flowOpen = false; state.revealed = false; state.statsQuiz = null; state.statsMonth = localDate().slice(0, 7);
         $$(".nav-btn").forEach(x => x.classList.toggle("active", x.dataset.tab === "today"));
-        bookDialog.close();
         await refreshHeader();
         render();
         toast(`已切换到《${book.name}》`);
       } catch (error) {
+        loadFailed = true;
         console.error(error);
         state.book = previousBook;
         state.session = previousSession;
@@ -2077,6 +2079,12 @@
         toast(`无法载入《${catalogBook.name}》`);
       } finally {
         setLoading(false);
+      }
+      if (loadFailed) {
+        const dialogTitle = $("#bookDialog .dialog-head h2");
+        dialogTitle.textContent = `《${catalogBook.name}》加载失败，请重试`;
+        bookDialog.showModal();
+        setTimeout(() => { dialogTitle.textContent = "切换单词书"; }, 2600);
       }
     }
 

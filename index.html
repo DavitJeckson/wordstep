@@ -601,12 +601,16 @@
       border-radius: 9px;
       font-size: 12px;
       font-weight: 750;
+      white-space: nowrap;
       cursor: pointer;
     }
     .review-action.relearn { border: 1px solid #c9c7f8; background: var(--indigo-soft); color: var(--indigo-dark); }
     .review-action.skip { border: 1px solid var(--line); background: var(--surface-2); color: #5c6272; }
-    .review-action.remember { border: 1px solid #a9dfcf; background: var(--green-soft); color: #0e654e; }
+    .review-action.remember { min-width: 72px; border: 1px solid #a9dfcf; background: var(--green-soft); color: #0e654e; }
     .review-action:disabled { cursor: default; opacity: .55; }
+    .review-action-group { display: grid; width: 72px; gap: 6px; }
+    .review-action-group .review-action { width: 100%; }
+    .review-meta > span { white-space: nowrap; }
     .review-tags { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 7px; }
     .review-tag { display: inline-flex; align-items: center; min-height: 23px; padding: 0 7px; border-radius: 7px; font-size: 10px; font-weight: 800; }
     .review-tag.spelling { background: var(--red-soft); color: #ad2c42; }
@@ -811,7 +815,7 @@
       .streak span { display: none; }
       .book-switch { padding: 0 5px; }
       .stage-item { padding-inline: 4px; }
-      .review-card summary { grid-template-columns: minmax(0, 1fr) 54px; gap: 8px; padding-inline: 12px; }
+      .review-card summary { grid-template-columns: minmax(0, 1fr) 76px; gap: 8px; padding-inline: 12px; }
       .stats-quiz-head { display: grid; }
       .stats-quiz-head .primary { width: 100%; }
       .calendar-card { padding-inline: 10px; }
@@ -1707,13 +1711,14 @@
         <div class="review-list" id="reviewList">${words.length ? words.map(word => {
           const p = progressByWord.get(word.id);
           const types = consolidationTypes(p);
+          const learnedStatus = p?.learnedDate ? (p.learnedDate === localDate() ? "今天学过" : `${dateLabel(p.learnedDate)} 学过`) : "学习日期未知";
           const statusLabel = state.reviewFilter === "consolidate"
-            ? "待巩固"
+            ? learnedStatus
             : state.reviewFilter === "unlearned"
             ? (p?.relearnQueuedAt ? "已排到末尾" : "待学习")
-            : p.learnedDate === localDate() ? "今天学过" : `${dateLabel(p.learnedDate)} 学过`;
+            : learnedStatus;
           const action = state.reviewFilter === "consolidate"
-            ? `<button class="review-action remember" type="button" data-consolidated-word="${esc(word.id)}" aria-label="将 ${esc(word.word)} 标记为已记住">记住了</button>`
+            ? `<div class="review-action-group"><button class="review-action remember" type="button" data-consolidated-word="${esc(word.id)}" aria-label="将 ${esc(word.word)} 标记为已记住">记住了</button><button class="review-action relearn" type="button" data-relearn-word="${esc(word.id)}" aria-label="将 ${esc(word.word)} 排到待学习列表末尾">再学</button></div>`
             : state.reviewFilter === "learned"
             ? `<button class="review-action relearn" type="button" data-relearn-word="${esc(word.id)}" aria-label="将 ${esc(word.word)} 排到待学习列表末尾">再学</button>`
             : state.reviewFilter === "unlearned"
@@ -1783,6 +1788,10 @@
       if (!progress?.learnedDate) return;
       progress.relearnQueuedAt = Date.now();
       delete progress.skippedAt;
+      if (consolidationTypes(progress).length) {
+        progress.consolidation = {};
+        progress.consolidationRelearnedAt = Date.now();
+      }
       await put("progress", progress);
       await renderReview();
       toast(`“${word.word}”已排到待学习列表末尾`);

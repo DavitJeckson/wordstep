@@ -2,12 +2,12 @@
   <title id="title">词阶</title>
   <rect width="64" height="64" rx="15" fill="#4F46E5"/>
   <path
-    d="M14 47h10V37h10V27h10V17h6"
+    d="M14 45h14V32h14V19"
     fill="none"
     stroke="#FFFFFF"
     stroke-width="7"
     stroke-linecap="round"
     stroke-linejoin="round"
   />
-  <circle cx="50" cy="17" r="5" fill="#FF704D"/>
+  <circle cx="42" cy="10" r="5" fill="#FF704D"/>
 </svg>

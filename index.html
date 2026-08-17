@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#f4f5f7">
   <meta name="description" content="词阶：每天复习、学习、测验，进度保存在本机。">
   <title>词阶 · 每日单词学习</title>
-  <link rel="icon" type="image/svg+xml" href="favor.svg">
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
   <style>
     :root {
       --bg: #f4f5f7;
@@ -78,11 +78,19 @@
     }
 
     .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
       color: var(--indigo);
       font-size: 25px;
       line-height: 1;
       font-weight: 800;
       letter-spacing: -.04em;
+    }
+    .brand img {
+      flex: 0 0 auto;
+      width: 28px;
+      height: 28px;
     }
 
     .book-switch {
@@ -428,6 +436,84 @@
     .bar { width: 100%; min-height: 4px; border-radius: 8px; background: var(--indigo); transition: height .3s ease; }
     .day-bar small { color: var(--muted); font-size: 10px; }
 
+    .calendar-card { margin-bottom: 14px; padding: 18px 14px 15px; }
+    .calendar-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 15px; }
+    .calendar-head h2 { margin: 0; font-size: 17px; }
+    .month-switch { display: grid; grid-template-columns: 36px minmax(96px, auto) 36px; align-items: center; gap: 4px; }
+    .month-switch button {
+      display: grid;
+      width: 36px;
+      height: 36px;
+      place-items: center;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: var(--surface-2);
+      color: var(--indigo);
+      font-size: 20px;
+      cursor: pointer;
+    }
+    .month-switch button:disabled { color: #a9adba; cursor: default; opacity: .55; }
+    .month-switch b { font-size: 14px; text-align: center; }
+    .calendar-weekdays, .learning-calendar { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 5px; }
+    .calendar-weekdays { margin-bottom: 6px; color: var(--muted); font-size: 10px; font-weight: 750; text-align: center; }
+    .calendar-day {
+      position: relative;
+      display: grid;
+      min-width: 0;
+      min-height: 55px;
+      align-content: space-between;
+      justify-items: center;
+      padding: 6px 2px 5px;
+      border: 1px solid transparent;
+      border-radius: 10px;
+      background: var(--surface-2);
+      color: #555b6b;
+      font-size: 11px;
+    }
+    .calendar-day.blank { background: transparent; }
+    .calendar-day.today { border-color: #aaa6f5; background: var(--indigo-soft); color: var(--indigo-dark); }
+    .calendar-day.has-learning { background: #f0efff; }
+    .calendar-day b { color: var(--indigo); font-size: 16px; line-height: 1; }
+    .calendar-day small { color: var(--muted); font-size: 8px; }
+
+    .stats-quiz-card { padding: 19px; }
+    .stats-quiz-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; }
+    .stats-quiz-head h2 { margin-bottom: 4px; font-size: 17px; }
+    .stats-quiz-head p { margin: 0; }
+    .stats-quiz-card .primary { flex: 0 0 auto; }
+    .quiz-source-options { display: grid; gap: 9px; margin-top: 16px; }
+    .quiz-source-option {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 12px;
+      width: 100%;
+      min-height: 68px;
+      padding: 12px 14px;
+      border: 1.5px solid #cfccfa;
+      border-radius: 13px;
+      background: #fafaff;
+      color: var(--ink);
+      text-align: left;
+      cursor: pointer;
+    }
+    .quiz-source-option:hover { border-color: var(--indigo); background: var(--indigo-soft); }
+    .quiz-source-option b { display: block; margin-bottom: 3px; font-size: 14px; }
+    .quiz-source-option small { display: block; color: var(--muted); font-size: 11px; line-height: 1.45; }
+    .quiz-source-option .quiz-source-action { color: var(--indigo); font-size: 12px; font-weight: 800; white-space: nowrap; }
+    .quiz-source-option:disabled { border-color: var(--line); background: var(--surface-2); color: #8b909e; cursor: not-allowed; opacity: .72; }
+    .quiz-source-option:disabled .quiz-source-action { color: #969ba8; }
+    .recent-scores { display: grid; gap: 8px; margin-top: 16px; padding-top: 15px; border-top: 1px solid var(--line); }
+    .recent-scores h3 { margin: 0 0 2px; font-size: 14px; }
+    .score-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 12px; border-radius: 11px; background: var(--surface-2); }
+    .score-row span { color: var(--muted); font-size: 12px; }
+    .score-row b { color: var(--indigo-dark); font-size: 16px; }
+    .standalone-quiz-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 16px; }
+    .standalone-quiz-head h1 { margin: 0; font-size: 23px; }
+    .standalone-quiz-head .ghost { min-height: 38px; padding: 0 11px; border-radius: 10px; font-size: 12px; }
+    .test-progress { margin-bottom: 22px; }
+    .test-result-score { margin: 2px 0 4px; color: var(--indigo); font-size: 58px; line-height: 1; letter-spacing: -.05em; }
+
     .review-controls {
       position: sticky;
       top: 72px;
@@ -519,7 +605,12 @@
     }
     .review-action.relearn { border: 1px solid #c9c7f8; background: var(--indigo-soft); color: var(--indigo-dark); }
     .review-action.skip { border: 1px solid var(--line); background: var(--surface-2); color: #5c6272; }
+    .review-action.remember { border: 1px solid #a9dfcf; background: var(--green-soft); color: #0e654e; }
     .review-action:disabled { cursor: default; opacity: .55; }
+    .review-tags { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 7px; }
+    .review-tag { display: inline-flex; align-items: center; min-height: 23px; padding: 0 7px; border-radius: 7px; font-size: 10px; font-weight: 800; }
+    .review-tag.spelling { background: var(--red-soft); color: #ad2c42; }
+    .review-tag.fuzzy { background: var(--coral-soft); color: #ae452d; }
     .mini-audio {
       display: grid;
       width: 34px;
@@ -671,6 +762,40 @@
       animation: toast-in .18s ease-out both;
     }
     @keyframes toast-in { from { opacity: 0; transform: translateY(8px); } }
+    .loading-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 80;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+      background: rgba(244,245,247,.78);
+      backdrop-filter: blur(8px);
+    }
+    .loading-panel {
+      display: grid;
+      min-width: min(270px, calc(100vw - 48px));
+      justify-items: center;
+      padding: 25px 22px 22px;
+      border: 1px solid rgba(79,70,229,.14);
+      border-radius: 19px;
+      background: #fff;
+      box-shadow: var(--shadow);
+      text-align: center;
+    }
+    .loading-spinner {
+      width: 40px;
+      height: 40px;
+      margin-bottom: 13px;
+      border: 4px solid #dddffa;
+      border-top-color: var(--indigo);
+      border-radius: 50%;
+      animation: loading-spin .72s linear infinite;
+    }
+    .loading-panel b { margin-bottom: 5px; font-size: 16px; }
+    .loading-panel span { color: var(--muted); font-size: 12px; }
+    @keyframes loading-spin { to { transform: rotate(360deg); } }
+    body.is-loading { overflow: hidden; }
     .hidden { display: none !important; }
     .empty { padding: 28px 16px; color: var(--muted); text-align: center; }
 
@@ -687,6 +812,10 @@
       .book-switch { padding: 0 5px; }
       .stage-item { padding-inline: 4px; }
       .review-card summary { grid-template-columns: minmax(0, 1fr) 54px; gap: 8px; padding-inline: 12px; }
+      .stats-quiz-head { display: grid; }
+      .stats-quiz-head .primary { width: 100%; }
+      .calendar-card { padding-inline: 10px; }
+      .calendar-day { min-height: 50px; }
     }
     @media (prefers-reduced-motion: reduce) {
       *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
@@ -696,7 +825,7 @@
 <body>
   <div class="app">
     <header class="header">
-      <div class="brand" aria-label="词阶">词阶</div>
+      <div class="brand" aria-label="词阶"><img src="favicon.svg" alt="" aria-hidden="true">词阶</div>
       <button class="book-switch" id="bookSwitch" type="button" aria-label="切换单词书">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 4.5A2.5 2.5 0 0 1 7.5 2H19v16H7.5A2.5 2.5 0 0 0 5 20.5v-16Z" stroke="currentColor" stroke-width="1.8"/><path d="M5 20.5A1.5 1.5 0 0 0 6.5 22H19v-4" stroke="currentColor" stroke-width="1.8"/></svg>
         <span id="bookName">载入中</span>
@@ -740,19 +869,26 @@
     </div>
   </dialog>
   <div class="toast hidden" id="toast" role="status"></div>
+  <div class="loading-overlay hidden" id="loadingOverlay" role="status" aria-live="assertive" aria-hidden="true">
+    <div class="loading-panel">
+      <div class="loading-spinner" aria-hidden="true"></div>
+      <b id="loadingTitle">正在加载词书</b>
+      <span>首次加载可能需要一点时间，请稍候</span>
+    </div>
+  </div>
 
   <script>
   (() => {
     "use strict";
 
     const DB_NAME = "wordstep-db";
-    const DB_VERSION = 1;
-    const STORES = ["books", "meta", "progress", "sessions", "activity"];
+    const DB_VERSION = 2;
+    const STORES = ["books", "meta", "progress", "sessions", "activity", "quizResults"];
     const $ = (selector, root = document) => root.querySelector(selector);
     const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
     const main = $("#main");
     const bookDialog = $("#bookDialog");
-    const state = { db: null, books: [], book: null, settings: null, session: null, tab: "today", flowOpen: false, revealed: false, quizAnswered: false, selectedAnswer: null, reviewFilter: "today", reviewQuery: "" };
+    const state = { db: null, books: [], book: null, settings: null, session: null, tab: "today", flowOpen: false, revealed: false, quizAnswered: false, selectedAnswer: null, reviewFilter: "consolidate", reviewQuery: "", statsMonth: localDate().slice(0, 7), statsQuiz: null };
 
     const REMOVED_BUILTIN_BOOK_IDS = ["cet6-focus", "business-core"];
     const CUSTOM_BOOK_CATALOG_KEY = "custom-book-catalog";
@@ -777,6 +913,7 @@
           if (!db.objectStoreNames.contains("progress")) db.createObjectStore("progress", { keyPath: "key" });
           if (!db.objectStoreNames.contains("sessions")) db.createObjectStore("sessions", { keyPath: "id" });
           if (!db.objectStoreNames.contains("activity")) db.createObjectStore("activity", { keyPath: "id" });
+          if (!db.objectStoreNames.contains("quizResults")) db.createObjectStore("quizResults", { keyPath: "id" });
         };
         request.onsuccess = () => resolve(request.result);
         request.onerror = () => reject(request.error);
@@ -822,6 +959,28 @@
     function hasRecordedAudio(word) {
       return Boolean(String(word?.audioBase64 || word?.audio || "").trim());
     }
+    function consolidationTypes(progress) {
+      if (!progress) return [];
+      if (Object.prototype.hasOwnProperty.call(progress, "consolidation")) {
+        const flags = progress.consolidation && typeof progress.consolidation === "object" ? progress.consolidation : {};
+        return ["spelling", "fuzzy"].filter(type => Boolean(flags[type]));
+      }
+      const types = [];
+      if ((progress.spellingWrong || 0) > 0) types.push("spelling");
+      if ((progress.wrong || 0) > (progress.spellingWrong || 0)) types.push("fuzzy");
+      return types;
+    }
+    function markForConsolidation(progress, type) {
+      const flags = {};
+      consolidationTypes(progress).forEach(existingType => { flags[existingType] = Date.now(); });
+      flags[type] = Date.now();
+      progress.consolidation = flags;
+    }
+    function consolidationTime(progress) {
+      const flags = progress?.consolidation;
+      if (!flags || typeof flags !== "object") return progress?.lastTestAt || progress?.lastSeenAt || 0;
+      return Math.max(0, ...Object.values(flags).map(Number).filter(Number.isFinite));
+    }
     function shuffle(items) {
       const a = [...items];
       for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; }
@@ -833,6 +992,18 @@
       el.classList.remove("hidden");
       clearTimeout(toast.timer);
       toast.timer = setTimeout(() => el.classList.add("hidden"), 2600);
+    }
+
+    function setLoading(active, title = "正在加载词书") {
+      const overlay = $("#loadingOverlay");
+      $("#loadingTitle").textContent = title;
+      overlay.classList.toggle("hidden", !active);
+      overlay.setAttribute("aria-hidden", String(!active));
+      document.body.classList.toggle("is-loading", active);
+    }
+
+    function waitForPaint() {
+      return new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
     }
 
     function withBundledMetadata(book, source) {
@@ -974,6 +1145,7 @@
       if (!session.quizOptions) { session.quizOptions = {}; changed = true; }
       if (!session.quizRetries) { session.quizRetries = {}; changed = true; }
       if (!session.spellingRetries) { session.spellingRetries = {}; changed = true; }
+      if (!Array.isArray(session.freshIds)) { session.freshIds = [...(session.newIds || [])]; changed = true; }
       if (typeof session.spellingCorrect !== "number") { session.spellingCorrect = 0; changed = true; }
       if (typeof session.spellingWrong !== "number") { session.spellingWrong = 0; changed = true; }
       if (session.completed && session.quizVersion !== 2 && session.newIds?.length) {
@@ -1040,11 +1212,12 @@
         return aQueued && bQueued ? aQueued - bQueued : 0;
       });
       const newIds = pendingWords.slice(0, state.settings.dailyNew).map(w => w.id);
+      const freshIds = newIds.filter(wordId => !progressByWord.get(wordId)?.learnedDate);
       session = {
         id, bookId: state.book.id, date: localDate(), reviewSourceDate: reviewPlan.sourceDate, reviewIds, newIds,
         stage: reviewIds.length ? "review" : newIds.length ? "learn" : "complete",
         reviewIndex: 0, reviewDone: [], reviewKnown: 0,
-        learnQueue: [...newIds], learnIndex: 0, learnDone: [], repeats: {},
+        learnQueue: [...newIds], learnIndex: 0, learnDone: [], freshIds, repeats: {},
         quizVersion: 2, quizMode: "choice", quizQueue: [], quizIndex: 0, quizCorrect: 0, quizWrong: 0, quizAnswers: [], quizOptions: {}, quizRetries: {}, spellingRetries: {}, spellingCorrect: 0, spellingWrong: 0,
         completed: !reviewIds.length && !newIds.length, createdAt: Date.now()
       };
@@ -1262,7 +1435,8 @@
       const word = currentWord();
       if (!word) return;
       const s = state.session;
-      const shouldScrollToNextWord = s.stage === "learn" && known;
+      const shouldScrollToNextWord = (s.stage === "learn" && known)
+        || (s.stage === "review" && s.reviewIndex + 1 >= s.reviewIds.length && s.newIds.length > 0);
       const key = `${state.book.id}:${word.id}`;
       const progress = await get("progress", key) || { key, bookId: state.book.id, wordId: word.id, reviewCount: 0, exposures: 0, correct: 0, wrong: 0 };
       progress.lastSeen = localDate();
@@ -1271,7 +1445,10 @@
         progress.reviewCount = (progress.reviewCount || 0) + 1;
         progress.lastReviewDate = localDate();
         if (known) s.reviewKnown++;
-        else progress.wrong = (progress.wrong || 0) + 1;
+        else {
+          progress.wrong = (progress.wrong || 0) + 1;
+          markForConsolidation(progress, "fuzzy");
+        }
         if (!s.reviewDone.includes(word.id)) s.reviewDone.push(word.id);
         s.reviewIndex++;
       } else {
@@ -1286,6 +1463,7 @@
         s.learnIndex++;
       }
       await put("progress", progress);
+      if (s.stage === "learn") await saveActivity(s, false);
       state.revealed = false;
       await advanceStage();
       if (shouldScrollToNextWord) scrollStudyCardToTop();
@@ -1380,6 +1558,8 @@
       const progress = await get("progress", key) || { key, bookId: state.book.id, wordId: word.id, reviewCount: 0, exposures: 0, correct: 0, wrong: 0 };
       progress[correct ? "correct" : "wrong"] = (progress[correct ? "correct" : "wrong"] || 0) + 1;
       progress.lastTestDate = localDate();
+      progress.lastTestAt = Date.now();
+      if (!correct) markForConsolidation(progress, "fuzzy");
       progress.mastery = Math.max(0, Math.min(100, Math.round(((progress.correct || 0) * 2 + (progress.reviewCount || 0)) / Math.max(1, (progress.correct || 0) * 2 + (progress.reviewCount || 0) + (progress.wrong || 0) * 2) * 100)));
       await put("progress", progress);
       await put("sessions", s);
@@ -1444,6 +1624,8 @@
       progress[correct ? "correct" : "wrong"] = (progress[correct ? "correct" : "wrong"] || 0) + 1;
       progress[correct ? "spellingCorrect" : "spellingWrong"] = (progress[correct ? "spellingCorrect" : "spellingWrong"] || 0) + 1;
       progress.lastTestDate = localDate();
+      progress.lastTestAt = Date.now();
+      if (!correct) markForConsolidation(progress, "spelling");
       progress.mastery = Math.max(0, Math.min(100, Math.round(((progress.correct || 0) * 2 + (progress.reviewCount || 0)) / Math.max(1, (progress.correct || 0) * 2 + (progress.reviewCount || 0) + (progress.wrong || 0) * 2) * 100)));
       await put("progress", progress);
       await put("sessions", s);
@@ -1457,9 +1639,11 @@
       await advanceStage();
     }
 
-    async function saveActivity(s) {
+    async function saveActivity(s, completed = true) {
       const id = `${s.bookId}:${s.date}`;
-      await put("activity", { id, bookId: s.bookId, date: s.date, completed: true, reviewed: s.reviewDone.length, learned: s.learnDone.length, quizCorrect: s.quizCorrect, quizWrong: s.quizWrong, spellingCorrect: s.spellingCorrect || 0, spellingWrong: s.spellingWrong || 0, completedAt: s.completedAt || Date.now() });
+      const freshIds = new Set(s.freshIds || s.newIds || []);
+      const learned = [...new Set(s.learnDone || [])].filter(wordId => freshIds.has(wordId)).length;
+      await put("activity", { id, bookId: s.bookId, date: s.date, completed: Boolean(completed), reviewed: s.reviewDone.length, learned, quizCorrect: s.quizCorrect, quizWrong: s.quizWrong, spellingCorrect: s.spellingCorrect || 0, spellingWrong: s.spellingWrong || 0, updatedAt: Date.now(), completedAt: completed ? (s.completedAt || Date.now()) : null });
     }
 
     function renderSummary() {
@@ -1481,7 +1665,13 @@
       const progress = (await getAll("progress")).filter(p => p.bookId === state.book.id);
       const progressByWord = new Map(progress.map(p => [p.wordId, p]));
       let words;
-      if (state.reviewFilter === "unlearned") {
+      if (state.reviewFilter === "consolidate") {
+        words = state.book.words.filter(word => {
+          const item = progressByWord.get(word.id);
+          return item && !item.skippedAt && consolidationTypes(item).length > 0;
+        });
+        words.sort((a, b) => consolidationTime(progressByWord.get(b.id)) - consolidationTime(progressByWord.get(a.id)) || a.word.localeCompare(b.word));
+      } else if (state.reviewFilter === "unlearned") {
         words = state.book.words.filter(word => {
           const item = progressByWord.get(word.id);
           return !item?.skippedAt && (!item?.learnedDate || item.relearnQueuedAt);
@@ -1497,11 +1687,10 @@
           const item = progressByWord.get(word.id);
           return item?.learnedDate && !item.relearnQueuedAt && !item.skippedAt;
         });
-        if (state.reviewFilter === "today") words = words.filter(word => progressByWord.get(word.id).learnedDate === localDate());
         words.sort((a, b) => progressByWord.get(b.id).learnedDate.localeCompare(progressByWord.get(a.id).learnedDate) || a.word.localeCompare(b.word));
       }
-      const emptyCopy = state.reviewFilter === "today"
-        ? { title: "今天还没有学过单词", body: "完成今天的学习后，单词会自动出现在这里。" }
+      const emptyCopy = state.reviewFilter === "consolidate"
+        ? { title: "暂时没有需要巩固的单词", body: "复习时没记住、释义选择错误或拼写错误的词会出现在这里。" }
         : state.reviewFilter === "learned"
           ? { title: "还没有已学单词", body: "完成学习后，可以在这里回顾并安排再次学习。" }
           : { title: "没有待学习单词", body: "词书中的单词已学完，或已设为不再学习。" };
@@ -1509,7 +1698,7 @@
         <div class="section-head"><div><p class="eyebrow">LOOK BACK</p><h1>回顾单词</h1></div><span class="review-result-count" id="reviewResultCount">${words.length} 个词</span></div>
         <div class="review-controls">
           <div class="review-tabs" role="tablist" aria-label="回顾单词范围">
-            <button class="review-filter ${state.reviewFilter === "today" ? "active" : ""}" type="button" data-review-filter="today">今天</button>
+            <button class="review-filter ${state.reviewFilter === "consolidate" ? "active" : ""}" type="button" data-review-filter="consolidate">巩固</button>
             <button class="review-filter ${state.reviewFilter === "learned" ? "active" : ""}" type="button" data-review-filter="learned">已学</button>
             <button class="review-filter ${state.reviewFilter === "unlearned" ? "active" : ""}" type="button" data-review-filter="unlearned">未学</button>
           </div>
@@ -1517,19 +1706,25 @@
         </div>
         <div class="review-list" id="reviewList">${words.length ? words.map(word => {
           const p = progressByWord.get(word.id);
-          const statusLabel = state.reviewFilter === "unlearned"
+          const types = consolidationTypes(p);
+          const statusLabel = state.reviewFilter === "consolidate"
+            ? "待巩固"
+            : state.reviewFilter === "unlearned"
             ? (p?.relearnQueuedAt ? "已排到末尾" : "待学习")
             : p.learnedDate === localDate() ? "今天学过" : `${dateLabel(p.learnedDate)} 学过`;
-          const action = state.reviewFilter === "learned"
+          const action = state.reviewFilter === "consolidate"
+            ? `<button class="review-action remember" type="button" data-consolidated-word="${esc(word.id)}" aria-label="将 ${esc(word.word)} 标记为已记住">记住了</button>`
+            : state.reviewFilter === "learned"
             ? `<button class="review-action relearn" type="button" data-relearn-word="${esc(word.id)}" aria-label="将 ${esc(word.word)} 排到待学习列表末尾">再学</button>`
             : state.reviewFilter === "unlearned"
               ? `<button class="review-action skip" type="button" data-skip-word="${esc(word.id)}" aria-label="不再学习 ${esc(word.word)}">不学</button>`
               : "";
           const wordLength = Array.from(word.word).length;
           const wordSizeClass = wordLength >= 22 ? "is-very-long" : wordLength >= 16 ? "is-long" : "";
+          const typeTags = state.reviewFilter === "consolidate" ? `<div class="review-tags">${types.map(type => `<span class="review-tag ${type}">${type === "spelling" ? "拼写错误" : "记忆模糊"}</span>`).join("")}</div>` : "";
           const searchText = `${word.word} ${word.phonetic} ${word.meaning} ${word.analysis} ${(word.phrases || []).map(x => `${x.en} ${x.zh}`).join(" ")} ${word.etymology?.root || ""} ${word.etymology?.explanation || ""}`.toLowerCase();
           return `<details class="review-card" data-review-search="${esc(searchText)}">
-            <summary><div><div class="review-word"><b class="${wordSizeClass}">${esc(word.word)}</b>${word.phonetic ? `<span>${phoneticHTML(word.phonetic)}</span>` : ""}</div><p class="review-meaning">${esc(word.meaning)}</p></div><div class="review-meta">${hasRecordedAudio(word) ? `<button class="mini-audio" type="button" data-review-audio="${esc(word.id)}" aria-label="播放 ${esc(word.word)} 的发音">▶</button>` : ""}${action}<span>${statusLabel}</span></div></summary>
+            <summary><div><div class="review-word"><b class="${wordSizeClass}">${esc(word.word)}</b>${word.phonetic ? `<span>${phoneticHTML(word.phonetic)}</span>` : ""}</div><p class="review-meaning">${esc(word.meaning)}</p>${typeTags}</div><div class="review-meta">${hasRecordedAudio(word) ? `<button class="mini-audio" type="button" data-review-audio="${esc(word.id)}" aria-label="播放 ${esc(word.word)} 的发音">▶</button>` : ""}${action}<span>${statusLabel}</span></div></summary>
             <div class="review-detail">${analysisHTML(word.analysis)}${phraseSectionHTML(word, true)}${word.examples.map(x => `<div class="example"><p>${highlightWord(x.en, word.word)}</p><small>${esc(x.zh)}</small></div>`).join("")}<div class="chip-list">${word.synonyms.map(x => `<span class="chip"><b>${esc(x.word)}</b>${x.note ? ` · ${esc(x.note)}` : ""}</span>`).join("")}${word.confusables.map(x => `<span class="chip"><b>${esc(x.word)}</b>${x.note ? ` · ${esc(x.note)}` : ""}</span>`).join("")}</div>${etymologySectionHTML(word, true)}</div>
           </details>`;
         }).join("") : `<div class="card empty"><h2>${emptyCopy.title}</h2><p>${emptyCopy.body}</p>${state.reviewFilter === "unlearned" ? "" : `<button class="primary small-button" type="button" id="goStudy">去今日学习</button>`}</div>`}</div>
@@ -1550,6 +1745,11 @@
         btn.disabled = true;
         await skipWord(btn.dataset.skipWord);
       }));
+      $$("[data-consolidated-word]").forEach(btn => btn.addEventListener("click", async event => {
+        event.preventDefault(); event.stopPropagation();
+        btn.disabled = true;
+        await clearConsolidation(btn.dataset.consolidatedWord);
+      }));
       const search = $("#reviewSearch");
       search.addEventListener("input", () => {
         state.reviewQuery = search.value;
@@ -1561,6 +1761,18 @@
       if (state.reviewQuery) search.dispatchEvent(new Event("input"));
       const goStudy = $("#goStudy");
       if (goStudy) goStudy.addEventListener("click", () => { state.tab = "today"; $$(".nav-btn").forEach(x => x.classList.toggle("active", x.dataset.tab === "today")); render(); });
+    }
+
+    async function clearConsolidation(wordId) {
+      const word = state.book.words.find(item => item.id === wordId);
+      const key = `${state.book.id}:${wordId}`;
+      const progress = await get("progress", key);
+      if (!word || !progress) return;
+      progress.consolidation = {};
+      progress.consolidationClearedAt = Date.now();
+      await put("progress", progress);
+      await renderReview();
+      toast(`“${word.word}”已移出巩固列表`);
     }
 
     async function queueWordForRelearning(wordId) {
@@ -1606,9 +1818,147 @@
       toast(`“${word.word}”已从学习计划中移除`);
     }
 
+    function shiftMonth(monthKey, delta) {
+      const [year, month] = monthKey.split("-").map(Number);
+      const next = new Date(year, month - 1 + delta, 1);
+      return `${next.getFullYear()}-${String(next.getMonth() + 1).padStart(2, "0")}`;
+    }
+
+    function monthLabel(monthKey) {
+      const [year, month] = monthKey.split("-").map(Number);
+      return `${year}年${month}月`;
+    }
+
+    function learningCalendarHTML(activity) {
+      const [year, month] = state.statsMonth.split("-").map(Number);
+      const firstWeekday = (new Date(year, month - 1, 1).getDay() + 6) % 7;
+      const days = new Date(year, month, 0).getDate();
+      const learnedByDate = new Map(activity.map(row => [row.date, row.learned || 0]));
+      const cells = Array.from({ length: firstWeekday }, () => `<div class="calendar-day blank" aria-hidden="true"></div>`);
+      for (let day = 1; day <= days; day++) {
+        const date = `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+        const count = learnedByDate.get(date) || 0;
+        cells.push(`<div class="calendar-day ${date === localDate() ? "today" : ""} ${count ? "has-learning" : ""}" aria-label="${month}月${day}日，新学 ${count} 个词"><span>${day}</span>${count ? `<b>${count}</b><small>新词</small>` : `<small>—</small>`}</div>`);
+      }
+      return cells.join("");
+    }
+
+    function statsQuizOptions(word, sourceWords = state.book.words) {
+      const meanings = [...new Set(sourceWords.map(item => item.meaning).filter(Boolean))];
+      const distractors = shuffle(meanings.filter(meaning => meaning !== word.meaning)).slice(0, 3);
+      const fallback = ["逐渐减少；缩小", "明确表达；阐明", "相互依赖的；关联的", "谨慎而有条理地处理"];
+      for (const meaning of fallback) {
+        if (distractors.length >= 3) break;
+        if (meaning !== word.meaning && !distractors.includes(meaning)) distractors.push(meaning);
+      }
+      return shuffle([word.meaning, ...distractors.slice(0, 3)]);
+    }
+
+    async function startStatsQuiz(scope = "all") {
+      if (state.statsQuiz) return;
+      const bookId = state.book.id;
+      let pool = state.book.words;
+      if (scope === "learned") {
+        const progress = (await getAll("progress")).filter(item => item.bookId === bookId);
+        if (state.book.id !== bookId || state.statsQuiz) return;
+        const learnedIds = new Set(progress.filter(item => item.learnedDate && !item.relearnQueuedAt && !item.skippedAt).map(item => item.wordId));
+        pool = state.book.words.filter(word => learnedIds.has(word.id));
+      }
+      if (pool.length < 100) {
+        toast(scope === "learned" ? `已学习 ${pool.length} 个单词，满 100 个后可用` : "当前词书不足 100 个单词，无法开始测验");
+        return;
+      }
+      const words = shuffle(pool).slice(0, 100);
+      state.statsQuiz = {
+        id: `${state.book.id}:test:${Date.now()}`,
+        bookId: state.book.id, scope,
+        questions: words.map(word => ({ wordId: word.id, options: statsQuizOptions(word, pool) })),
+        index: 0, correct: 0, answers: [], answered: false, selected: null, startedAt: Date.now(), completed: false
+      };
+      renderStatsQuiz();
+    }
+
+    function renderStatsQuiz() {
+      const quiz = state.statsQuiz;
+      if (!quiz) return renderStats();
+      if (quiz.completed) {
+        main.innerHTML = `<section class="screen">
+          <p class="eyebrow">100-WORD TEST</p>
+          <div class="card summary-card">
+            <div class="summary-mark">✓</div><h1>测验完成</h1>
+            <div class="test-result-score">${quiz.score}</div><p class="sub">${quiz.scope === "learned" ? "已学单词抽题" : "全词书抽题"} · 满分 100 分 · 答对 ${quiz.correct} 题 · 答错 ${quiz.questions.length - quiz.correct} 题</p>
+            <div class="actions"><button class="secondary" type="button" id="restartStatsQuiz">再测一次</button><button class="primary" type="button" id="backToStats">返回统计</button></div>
+          </div>
+        </section>`;
+        $("#restartStatsQuiz").addEventListener("click", () => { state.statsQuiz = null; startStatsQuiz(quiz.scope || "all"); });
+        $("#backToStats").addEventListener("click", () => { state.statsQuiz = null; renderStats(); });
+        return;
+      }
+      const question = quiz.questions[quiz.index];
+      const word = state.book.words.find(item => item.id === question.wordId);
+      if (!word) { quiz.index++; return renderStatsQuiz(); }
+      const percent = Math.round((quiz.index + (quiz.answered ? 1 : 0)) / quiz.questions.length * 100);
+      const isCorrect = quiz.selected === word.meaning;
+      main.innerHTML = `<section class="screen">
+        <div class="standalone-quiz-head"><div><p class="eyebrow">100-WORD TEST</p><h1>${quiz.scope === "learned" ? "已学单词测验" : "全词书测验"}</h1></div><button class="ghost" type="button" id="exitStatsQuiz">退出测验</button></div>
+        <div class="today-head test-progress"><div><h2>第 ${quiz.index + 1} 题 <span class="sub">/ ${quiz.questions.length}</span></h2></div><div class="completion">当前答对 ${quiz.correct} 题</div></div>
+        <div class="progress-track"><div class="progress-fill" style="width:${percent}%"></div></div>
+        <div class="quiz-title"><span class="quiz-kind">选择正确释义</span><h1 class="word">${esc(word.word)}</h1>${word.phonetic ? `<p>${phoneticHTML(word.phonetic)}</p>` : ""}</div>
+        <div class="options">${question.options.map((option, optionIndex) => {
+          let cls = "";
+          if (quiz.answered && option === word.meaning) cls = "correct";
+          else if (quiz.answered && option === quiz.selected) cls = "wrong";
+          return `<button class="option ${cls}" type="button" data-stats-option-index="${optionIndex}" ${quiz.answered ? "disabled" : ""}>${esc(option)}</button>`;
+        }).join("")}</div>
+        ${quiz.answered ? `<div class="answer-note"><b>${isCorrect ? "回答正确" : "正确答案"}</b>：${esc(word.meaning)}</div><div class="actions single"><button class="primary block" type="button" id="nextStatsQuestion">${quiz.index + 1 >= quiz.questions.length ? "查看成绩" : "下一题"}</button></div>` : ""}
+      </section>`;
+      $$("[data-stats-option-index]").forEach(button => button.addEventListener("click", () => answerStatsQuiz(question.options[Number(button.dataset.statsOptionIndex)])));
+      $("#nextStatsQuestion")?.addEventListener("click", nextStatsQuizQuestion);
+      $("#exitStatsQuiz").addEventListener("click", () => {
+        if (!quiz.answers.length || confirm("退出后本次测验进度不会保存，确定退出吗？")) {
+          state.statsQuiz = null;
+          renderStats();
+        }
+      });
+    }
+
+    function answerStatsQuiz(answer) {
+      const quiz = state.statsQuiz;
+      if (!quiz || quiz.answered) return;
+      const question = quiz.questions[quiz.index];
+      const word = state.book.words.find(item => item.id === question.wordId);
+      const correct = answer === word.meaning;
+      quiz.answered = true;
+      quiz.selected = answer;
+      if (correct) quiz.correct++;
+      quiz.answers.push({ wordId: word.id, correct });
+      renderStatsQuiz();
+    }
+
+    async function nextStatsQuizQuestion() {
+      const quiz = state.statsQuiz;
+      if (!quiz?.answered) return;
+      if (quiz.index + 1 < quiz.questions.length) {
+        quiz.index++;
+        quiz.answered = false;
+        quiz.selected = null;
+        renderStatsQuiz();
+        return;
+      }
+      quiz.completed = true;
+      quiz.completedAt = Date.now();
+      quiz.score = Math.round(quiz.correct / quiz.questions.length * 100);
+      await put("quizResults", { id: quiz.id, bookId: quiz.bookId, scope: quiz.scope || "all", date: localDate(), score: quiz.score, total: 100, correct: quiz.correct, completedAt: quiz.completedAt });
+      renderStatsQuiz();
+    }
+
     async function renderStats() {
-      const progress = (await getAll("progress")).filter(p => p.bookId === state.book.id);
-      const activity = (await getAll("activity")).filter(a => a.bookId === state.book.id);
+      if (state.statsQuiz) return renderStatsQuiz();
+      const renderBookId = state.book.id;
+      const progress = (await getAll("progress")).filter(p => p.bookId === renderBookId);
+      const activity = (await getAll("activity")).filter(a => a.bookId === renderBookId);
+      const quizResults = (await getAll("quizResults")).filter(result => result.bookId === renderBookId).sort((a, b) => b.completedAt - a.completedAt).slice(0, 5);
+      if (state.tab !== "stats" || state.book.id !== renderBookId || state.statsQuiz) return;
       const learned = progress.filter(p => p.learnedDate && !p.relearnQueuedAt && !p.skippedAt).length;
       const skipped = progress.filter(p => p.skippedAt).length;
       const target = Math.max(0, state.book.words.length - skipped);
@@ -1619,14 +1969,27 @@
       const spellingWrong = progress.reduce((n, p) => n + (p.spellingWrong || 0), 0);
       const accuracy = correct + wrong ? Math.round(correct / (correct + wrong) * 100) : 0;
       const spellingAccuracy = spellingCorrect + spellingWrong ? Math.round(spellingCorrect / (spellingCorrect + spellingWrong) * 100) : 0;
-      const last7 = Array.from({ length: 7 }, (_, i) => localDate(i - 6));
-      const values = last7.map(date => { const row = activity.find(a => a.date === date); return row ? row.learned + row.reviewed : 0; });
-      const max = Math.max(1, ...values);
+      const currentMonth = localDate().slice(0, 7);
       main.innerHTML = `<section class="screen">
         <div class="section-head"><div><p class="eyebrow">PROGRESS</p><h1>学习统计</h1></div><span class="sub">${esc(state.book.name)}</span></div>
         <div class="stat-grid"><div class="stat-card"><b>${learned}</b><small>已学 / ${target}</small></div><div class="stat-card"><b>${mastered}</b><small>已掌握词</small></div><div class="stat-card"><b>${accuracy}%</b><small>综合正确率</small></div><div class="stat-card"><b>${spellingAccuracy}%</b><small>拼写正确率</small></div><div class="stat-card"><b>${spellingCorrect + spellingWrong}</b><small>累计拼写次数</small></div><div class="stat-card"><b>${activity.filter(a => a.completed).length}</b><small>完成天数</small></div></div>
-        <div class="card chart-card"><h2>最近 7 天学习量</h2><p class="sub">新学词与复习词合计</p><div class="week-chart">${last7.map((date, i) => `<div class="day-bar"><div class="bar-wrap" title="${values[i]} 个词"><div class="bar" style="height:${Math.max(4, values[i] / max * 100)}%"></div></div><small>${date === localDate() ? "今天" : date.slice(5).replace("-", "/")}</small></div>`).join("")}</div></div>
+        <div class="card calendar-card">
+          <div class="calendar-head"><div><h2>学习日历</h2><p class="sub">每天新学单词数量</p></div><div class="month-switch"><button type="button" id="previousMonth" aria-label="上个月">‹</button><b>${monthLabel(state.statsMonth)}</b><button type="button" id="nextMonth" aria-label="下个月" ${state.statsMonth >= currentMonth ? "disabled" : ""}>›</button></div></div>
+          <div class="calendar-weekdays" aria-hidden="true"><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span><span>日</span></div>
+          <div class="learning-calendar">${learningCalendarHTML(activity)}</div>
+        </div>
+        <div class="card stats-quiz-card">
+          <div class="stats-quiz-head"><div><h2>100 词学习测验</h2><p class="sub">选择抽题范围，每题 1 分，满分 100 分。</p></div></div>
+          <div class="quiz-source-options">
+            <button class="quiz-source-option" type="button" data-quiz-scope="all" ${state.book.words.length < 100 ? "disabled" : ""}><span><b>从全词书抽 100 个</b><small>当前词书共 ${state.book.words.length} 个单词</small></span><span class="quiz-source-action">开始 ›</span></button>
+            <button class="quiz-source-option" type="button" data-quiz-scope="learned" ${learned < 100 ? "disabled" : ""}><span><b>从已学习的单词抽 100 个</b><small>已学习 ${learned} 个${learned < 100 ? ` · 还差 ${100 - learned} 个可用` : " · 随机抽题"}</small></span><span class="quiz-source-action">${learned < 100 ? "暂不可用" : "开始 ›"}</span></button>
+          </div>
+          <div class="recent-scores"><h3>最近 5 次成绩</h3>${quizResults.length ? quizResults.map(result => `<div class="score-row"><span>${new Date(result.completedAt).toLocaleString("zh-CN", { month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit" })} · ${result.scope === "learned" ? "已学词" : "全词书"}</span><b>${result.score} / 100</b></div>`).join("") : `<p class="sub">完成测验后，成绩会显示在这里。</p>`}</div>
+        </div>
       </section>`;
+      $("#previousMonth").addEventListener("click", () => { state.statsMonth = shiftMonth(state.statsMonth, -1); renderStats(); });
+      $("#nextMonth").addEventListener("click", () => { if (state.statsMonth < currentMonth) { state.statsMonth = shiftMonth(state.statsMonth, 1); renderStats(); } });
+      $$("[data-quiz-scope]").forEach(button => button.addEventListener("click", () => startStatsQuiz(button.dataset.quizScope)));
     }
 
     async function renderPlan() {
@@ -1650,7 +2013,7 @@
         </div>
         <div class="card plan-card"><div class="plan-row"><div><h3>单词书管理</h3><p>导入、切换或查看 JSON 格式</p></div><button class="secondary small-button" type="button" id="manageBooks">管理</button></div>
           <div class="plan-row"><div><h3>导出学习数据</h3><p>备份当前词书的进度与历史</p></div><button class="ghost small-button" type="button" id="exportProgress">导出</button></div></div>
-        <div class="card plan-card"><div class="plan-row"><div><h3>重置当前词书</h3><p>删除该词书的学习进度和每日记录</p></div><button class="danger small-button" type="button" id="resetProgress">重置</button></div></div>
+        <div class="card plan-card"><div class="plan-row"><div><h3>重置当前词书</h3><p>删除该词书的学习进度、测验成绩和每日记录</p></div><button class="danger small-button" type="button" id="resetProgress">重置</button></div></div>
       </section>`;
       $("#minusDaily").addEventListener("click", () => changeDaily(-1));
       $("#plusDaily").addEventListener("click", () => changeDaily(1));
@@ -1676,28 +2039,36 @@
       if (id === state.book.id) { bookDialog.close(); return; }
       const catalogBook = state.books.find(book => book.id === id);
       if (!catalogBook) return;
+      const previousBook = state.book;
+      const previousSession = state.session;
+      const previousActiveBookId = state.settings.activeBookId;
       const buttons = $$("[data-book-id]");
       buttons.forEach(button => { button.disabled = true; });
-      toast(`正在载入《${catalogBook.name}》`);
-      let book;
+      setLoading(true, `正在加载《${catalogBook.name}》`);
+      await waitForPaint();
       try {
-        book = await loadBookById(id);
+        const book = await loadBookById(id);
+        state.book = book;
+        state.settings.activeBookId = id;
+        await put("meta", state.settings);
+        state.session = await getSession();
+        state.tab = "today"; state.flowOpen = false; state.revealed = false; state.statsQuiz = null; state.statsMonth = localDate().slice(0, 7);
+        $$(".nav-btn").forEach(x => x.classList.toggle("active", x.dataset.tab === "today"));
+        bookDialog.close();
+        await refreshHeader();
+        render();
+        toast(`已切换到《${book.name}》`);
       } catch (error) {
         console.error(error);
+        state.book = previousBook;
+        state.session = previousSession;
+        state.settings.activeBookId = previousActiveBookId;
+        try { await put("meta", state.settings); } catch (restoreError) { console.error("无法恢复原词书设置", restoreError); }
         buttons.forEach(button => { button.disabled = false; });
         toast(`无法载入《${catalogBook.name}》`);
-        return;
+      } finally {
+        setLoading(false);
       }
-      state.book = book;
-      state.settings.activeBookId = id;
-      await put("meta", state.settings);
-      state.session = await getSession();
-      state.tab = "today"; state.flowOpen = false; state.revealed = false;
-      $$(".nav-btn").forEach(x => x.classList.toggle("active", x.dataset.tab === "today"));
-      bookDialog.close();
-      await refreshHeader();
-      render();
-      toast(`已切换到《${book.name}》`);
     }
 
     function normalizeBook(raw) {
@@ -1758,19 +2129,20 @@
       const progress = (await getAll("progress")).filter(p => p.bookId === state.book.id);
       const sessions = (await getAll("sessions")).filter(s => s.bookId === state.book.id);
       const activity = (await getAll("activity")).filter(a => a.bookId === state.book.id);
-      downloadFile(`${state.book.id}-progress.json`, JSON.stringify({ exportedAt: new Date().toISOString(), book: { id: state.book.id, name: state.book.name }, settings: { dailyNew: state.settings.dailyNew }, progress, sessions, activity }, null, 2));
+      const quizResults = (await getAll("quizResults")).filter(result => result.bookId === state.book.id);
+      downloadFile(`${state.book.id}-progress.json`, JSON.stringify({ exportedAt: new Date().toISOString(), book: { id: state.book.id, name: state.book.name }, settings: { dailyNew: state.settings.dailyNew }, progress, sessions, activity, quizResults }, null, 2));
       toast("学习数据已导出");
     }
 
     async function resetProgress() {
       if (!confirm(`确定重置《${state.book.name}》的全部学习进度吗？此操作无法撤销。`)) return;
-      const groups = ["progress", "sessions", "activity"];
+      const groups = ["progress", "sessions", "activity", "quizResults"];
       for (const store of groups) {
         const rows = await getAll(store);
         for (const row of rows.filter(x => x.bookId === state.book.id)) await remove(store, row.key || row.id);
       }
       state.session = await getSession();
-      state.tab = "today"; state.flowOpen = false;
+      state.tab = "today"; state.flowOpen = false; state.statsQuiz = null; state.statsMonth = localDate().slice(0, 7);
       $$(".nav-btn").forEach(x => x.classList.toggle("active", x.dataset.tab === "today"));
       await refreshHeader(); render(); toast("当前词书进度已重置");
     }

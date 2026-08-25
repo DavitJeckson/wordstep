@@ -417,6 +417,8 @@
       cursor: pointer;
     }
     .option:hover { border-color: #b8b4f6; background: #fafaff; }
+    .option.unknown-option { border-style: dashed; background: var(--surface-2); color: var(--muted); font-weight: 750; text-align: center; }
+    .option.unknown-option:hover { border-color: #aeb2bf; background: #f0f1f4; color: #444a59; }
     .option.correct { border-color: var(--green); background: var(--green-soft); color: #0e654e; }
     .option.wrong { border-color: var(--red); background: var(--red-soft); color: #a7273b; }
     .answer-note {
@@ -1624,7 +1626,7 @@
       const s = state.session;
       const options = getQuizOptions(word);
       const answered = state.quizAnswered;
-      const isCorrect = state.selectedAnswer === word.meaning;
+      const isCorrect = state.selectedAnswer !== null && state.selectedAnswer === word.meaning;
       const c = sessionCounts();
       main.innerHTML = `<section class="screen">
         <div class="today-head"><div><p class="eyebrow">QUIZ · CHOICE</p><h2>释义选择 <span class="sub">${s.quizIndex + 1} / ${s.quizQueue.length}</span></h2></div><div class="completion">${s.quizIndex >= s.newIds.length ? "释义错题加练" : `今日 ${c.percent}%`}</div></div>
@@ -1636,17 +1638,20 @@
           if (answered && option === word.meaning) cls = "correct";
           else if (answered && option === state.selectedAnswer) cls = "wrong";
           return `<button class="option ${cls}" type="button" data-option="${esc(option)}" ${answered ? "disabled" : ""}>${esc(option)}</button>`;
-        }).join("")}</div>
+        }).join("")}<button class="option unknown-option ${answered && state.selectedAnswer === null ? "wrong" : ""}" type="button" id="unknownChoice" ${answered ? "disabled" : ""} aria-label="我不知道，按错误答案记录">我不知道</button></div>
         ${answered ? `<div class="answer-note"><b>${isCorrect ? "回答正确" : "正确答案"}</b>：${esc(word.meaning)}${!isCorrect ? "<br>这个词已加入本轮加练。" : ""}</div><div class="actions single"><button class="primary block" type="button" id="nextQuestion">${s.quizIndex + 1 >= s.quizQueue.length ? "完成今日学习" : "下一题"}</button></div>` : ""}
       </section>`;
-      if (!answered) $$(".option").forEach(btn => btn.addEventListener("click", () => answerQuiz(btn.dataset.option)));
+      if (!answered) {
+        $$("[data-option]").forEach(btn => btn.addEventListener("click", () => answerQuiz(btn.dataset.option)));
+        $("#unknownChoice").addEventListener("click", () => answerQuiz(null));
+      }
       else $("#nextQuestion").addEventListener("click", nextQuiz);
     }
 
     async function answerQuiz(answer) {
       if (state.quizAnswered) return;
       const word = currentWord();
-      const correct = answer === word.meaning;
+      const correct = answer !== null && answer === word.meaning;
       state.quizAnswered = true;
       state.selectedAnswer = answer;
       const s = state.session;
@@ -1656,7 +1661,7 @@
         s.quizRetries[word.id] = (s.quizRetries[word.id] || 0) + 1;
         if (s.quizRetries[word.id] === 1) s.quizQueue.push(word.id);
       }
-      s.quizAnswers.push({ type: "choice", wordId: word.id, correct, at: Date.now() });
+      s.quizAnswers.push({ type: "choice", wordId: word.id, answer: answer === null ? "unknown" : answer, unknown: answer === null, correct, at: Date.now() });
       const key = `${state.book.id}:${word.id}`;
       const progress = await get("progress", key) || { key, bookId: state.book.id, wordId: word.id, reviewCount: 0, exposures: 0, correct: 0, wrong: 0 };
       progress[correct ? "correct" : "wrong"] = (progress[correct ? "correct" : "wrong"] || 0) + 1;
@@ -2006,7 +2011,7 @@
       const word = state.book.words.find(item => item.id === question.wordId);
       if (!word) { quiz.index++; return renderStatsQuiz(); }
       const percent = Math.round((quiz.index + (quiz.answered ? 1 : 0)) / quiz.questions.length * 100);
-      const isCorrect = quiz.selected === word.meaning;
+      const isCorrect = quiz.selected !== null && quiz.selected === word.meaning;
       main.innerHTML = `<section class="screen">
         <div class="standalone-quiz-head"><div><p class="eyebrow">100-WORD TEST</p><h1>${quiz.scope === "learned" ? "已学单词测验" : "全词书测验"}</h1></div><button class="ghost" type="button" id="exitStatsQuiz">退出测验</button></div>
         <div class="today-head test-progress"><div><h2>第 ${quiz.index + 1} 题 <span class="sub">/ ${quiz.questions.length}</span></h2></div><div class="completion">当前答对 ${quiz.correct} 题</div></div>
@@ -2017,10 +2022,11 @@
           if (quiz.answered && option === word.meaning) cls = "correct";
           else if (quiz.answered && option === quiz.selected) cls = "wrong";
           return `<button class="option ${cls}" type="button" data-stats-option-index="${optionIndex}" ${quiz.answered ? "disabled" : ""}>${esc(option)}</button>`;
-        }).join("")}</div>
+        }).join("")}<button class="option unknown-option ${quiz.answered && quiz.selected === null ? "wrong" : ""}" type="button" id="unknownStatsChoice" ${quiz.answered ? "disabled" : ""} aria-label="我不知道，按错误答案记录">我不知道</button></div>
         ${quiz.answered ? `<div class="answer-note"><b>${isCorrect ? "回答正确" : "正确答案"}</b>：${esc(word.meaning)}</div><div class="actions single"><button class="primary block" type="button" id="nextStatsQuestion">${quiz.index + 1 >= quiz.questions.length ? "查看成绩" : "下一题"}</button></div>` : ""}
       </section>`;
       $$("[data-stats-option-index]").forEach(button => button.addEventListener("click", () => answerStatsQuiz(question.options[Number(button.dataset.statsOptionIndex)])));
+      $("#unknownStatsChoice")?.addEventListener("click", () => answerStatsQuiz(null));
       $("#nextStatsQuestion")?.addEventListener("click", nextStatsQuizQuestion);
       $("#exitStatsQuiz").addEventListener("click", () => {
         if (!quiz.answers.length || confirm("退出后本次测验进度不会保存，确定退出吗？")) {
@@ -2035,11 +2041,11 @@
       if (!quiz || quiz.answered) return;
       const question = quiz.questions[quiz.index];
       const word = state.book.words.find(item => item.id === question.wordId);
-      const correct = answer === word.meaning;
+      const correct = answer !== null && answer === word.meaning;
       quiz.answered = true;
       quiz.selected = answer;
       if (correct) quiz.correct++;
-      quiz.answers.push({ wordId: word.id, correct });
+      quiz.answers.push({ wordId: word.id, unknown: answer === null, correct });
       renderStatsQuiz();
     }
 

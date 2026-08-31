@@ -398,6 +398,18 @@
       background: linear-gradient(transparent, rgba(244,245,247,.96) 25%);
     }
     .actions.single { grid-template-columns: 1fr; }
+    .actions.learn-actions {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 8px;
+    }
+    .learn-actions > button {
+      min-width: 0;
+      padding-inline: 5px;
+      white-space: nowrap;
+      font-size: clamp(12px, 3.8vw, 14px);
+    }
+    .familiar-button { border-color: #9ed8c7; background: var(--green-soft); color: #0e654e; }
+    .familiar-button:hover { border-color: var(--green); background: #d9f2e9; }
 
     .quiz-title { margin-bottom: 16px; text-align: center; }
     .quiz-title .word { font-size: clamp(38px, 12vw, 52px); }
@@ -921,7 +933,7 @@
     const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
     const main = $("#main");
     const bookDialog = $("#bookDialog");
-    const state = { db: null, books: [], book: null, settings: null, session: null, tab: "today", flowOpen: false, revealed: false, quizAnswered: false, selectedAnswer: null, reviewFilter: "consolidate", reviewQuery: "", statsMonth: localDate().slice(0, 7), statsQuiz: null };
+    const state = { db: null, books: [], book: null, settings: null, session: null, tab: "today", flowOpen: false, revealed: false, quizAnswered: false, selectedAnswer: null, reviewFilter: "consolidate", reviewQuery: "", statsMonth: localDate().slice(0, 7), statsQuiz: null, studyActionPending: false };
 
     const REMOVED_BUILTIN_BOOK_IDS = ["cet6-focus", "business-core"];
     const CUSTOM_BOOK_CATALOG_KEY = "custom-book-catalog";
@@ -1207,6 +1219,7 @@
       if (!session.quizRetries) { session.quizRetries = {}; changed = true; }
       if (!session.spellingRetries) { session.spellingRetries = {}; changed = true; }
       if (!Array.isArray(session.freshIds)) { session.freshIds = [...(session.newIds || [])]; changed = true; }
+      if (!Array.isArray(session.familiarIds)) { session.familiarIds = []; changed = true; }
       if (typeof session.spellingCorrect !== "number") { session.spellingCorrect = 0; changed = true; }
       if (typeof session.spellingWrong !== "number") { session.spellingWrong = 0; changed = true; }
       if (session.completed && session.quizVersion !== 2 && session.newIds?.length) {
@@ -1278,7 +1291,7 @@
         id, bookId: state.book.id, date: localDate(), reviewSourceDate: reviewPlan.sourceDate, reviewIds, newIds,
         stage: reviewIds.length ? "review" : newIds.length ? "learn" : "complete",
         reviewIndex: 0, reviewDone: [], reviewKnown: 0,
-        learnQueue: [...newIds], learnIndex: 0, learnDone: [], freshIds, repeats: {},
+        learnQueue: [...newIds], learnIndex: 0, learnDone: [], freshIds, familiarIds: [], repeats: {},
         quizVersion: 2, quizMode: "choice", quizQueue: [], quizIndex: 0, quizCorrect: 0, quizWrong: 0, quizAnswers: [], quizOptions: {}, quizRetries: {}, spellingRetries: {}, spellingCorrect: 0, spellingWrong: 0,
         completed: !reviewIds.length && !newIds.length, createdAt: Date.now()
       };
@@ -1374,6 +1387,21 @@
       return ({ learn: "今日学习", quiz: "今日测验", complete: "已完成" })[stage] || "继续";
     }
 
+    async function runLearnAction(action) {
+      if (state.studyActionPending) return;
+      state.studyActionPending = true;
+      $$(".learn-actions button").forEach(button => { button.disabled = true; });
+      try {
+        await action();
+      } catch (error) {
+        console.error("学习操作失败", error);
+        toast("操作失败，请重试");
+        if (state.session.stage === "learn") renderFlow();
+      } finally {
+        state.studyActionPending = false;
+      }
+    }
+
     function renderFlow() {
       if (state.session.stage === "quiz") return renderQuiz();
       const word = currentWord();
@@ -1391,13 +1419,22 @@
           <div class="study-top"><h1 class="word">${esc(word.word)}</h1><div class="pronunciation-row">${phoneticWithAudioHTML(word)}${hasRecordedAudio(word) ? `<button class="audio-btn" type="button" id="audioButton" aria-label="播放 ${esc(word.word)} 的录制发音">▶</button>` : ""}</div></div>
           ${showDetail ? wordDetailHTML(word) : `<div class="reveal-placeholder"><div><b>先回忆这个词的含义</b><p class="sub">想好后再显示答案</p></div></div>`}
         </article>
-        ${isReview && !state.revealed ? `<div class="actions single"><button class="primary block" type="button" id="revealButton">显示答案</button></div>` : `<div class="actions"><button class="secondary" type="button" id="againButton">${isReview ? "还不熟" : "再看看"}</button><button class="primary" type="button" id="knowButton">${isReview ? "认识" : "记住了"}</button></div>`}
+        ${isReview
+          ? (!state.revealed
+            ? `<div class="actions single"><button class="primary block" type="button" id="revealButton">显示答案</button></div>`
+            : `<div class="actions"><button class="secondary" type="button" id="againButton">还不熟</button><button class="primary" type="button" id="knowButton">认识</button></div>`)
+          : `<div class="actions learn-actions"><button class="secondary" type="button" id="reviewAgainButton" aria-label="需重温，将当前单词放到今日学习队列末尾">需重温</button><button class="secondary familiar-button" type="button" id="familiarButton" aria-label="很熟悉，标记已学并从今日学习和测验中移除">很熟悉</button><button class="ghost" type="button" id="previousWordButton" ${state.session.learnIndex <= 0 ? "disabled" : ""} aria-label="返回上一个单词">上一个</button><button class="primary" type="button" id="nextWordButton" aria-label="进入下一个单词">下一个</button></div>`}
       </section>`;
       $("#audioButton")?.addEventListener("click", event => playAudio(word, event.currentTarget));
       if (isReview && !state.revealed) $("#revealButton").addEventListener("click", () => { state.revealed = true; render(); });
-      else {
+      else if (isReview) {
         $("#againButton").addEventListener("click", () => rateWord(false));
         $("#knowButton").addEventListener("click", () => rateWord(true));
+      } else {
+        $("#reviewAgainButton").addEventListener("click", () => runLearnAction(() => rateWord(false)));
+        $("#familiarButton").addEventListener("click", () => runLearnAction(markWordVeryFamiliar));
+        $("#previousWordButton").addEventListener("click", () => runLearnAction(goToPreviousLearnWord));
+        $("#nextWordButton").addEventListener("click", () => runLearnAction(() => rateWord(true)));
       }
     }
 
@@ -1537,9 +1574,51 @@
       scrollStudyCardToTop.timer = setTimeout(align, 220);
     }
 
+    async function goToPreviousLearnWord() {
+      const s = state.session;
+      if (s.stage !== "learn" || s.learnIndex <= 0) return;
+      stopPronunciationPlayback();
+      s.learnIndex--;
+      state.revealed = false;
+      await put("sessions", s);
+      renderFlow();
+      scrollStudyCardToTop();
+    }
+
+    async function markWordVeryFamiliar() {
+      const word = currentWord();
+      const s = state.session;
+      if (!word || s.stage !== "learn") return;
+      stopPronunciationPlayback();
+      const key = `${state.book.id}:${word.id}`;
+      const progress = await get("progress", key) || { key, bookId: state.book.id, wordId: word.id, reviewCount: 0, exposures: 0, correct: 0, wrong: 0 };
+      progress.lastSeen = localDate();
+      progress.exposures = (progress.exposures || 0) + 1;
+      if (!progress.learnedDate || progress.relearnQueuedAt) progress.learnedDate = localDate();
+      progress.mastery = 100;
+      progress.familiarAt = Date.now();
+      progress.consolidation = {};
+      delete progress.relearnQueuedAt;
+      delete progress.skippedAt;
+      if (!s.learnDone.includes(word.id)) s.learnDone.push(word.id);
+      if (!Array.isArray(s.familiarIds)) s.familiarIds = [];
+      if (!s.familiarIds.includes(word.id)) s.familiarIds.push(word.id);
+      s.newIds = s.newIds.filter(id => id !== word.id);
+      s.learnQueue = withoutFutureWord(s.learnQueue, s.learnIndex, word.id);
+      s.quizQueue = (s.quizQueue || []).filter(id => id !== word.id);
+      delete s.repeats[word.id];
+      await put("progress", progress);
+      await saveActivity(s, false);
+      state.revealed = false;
+      await advanceStage();
+      if (s.stage === "learn") scrollStudyCardToTop();
+      toast(`“${word.word}”已标记为很熟悉，今日不再学习和测验`);
+    }
+
     async function rateWord(known) {
       const word = currentWord();
       if (!word) return;
+      stopPronunciationPlayback();
       const s = state.session;
       const shouldScrollToNextWord = (s.stage === "learn" && known)
         || (s.stage === "review" && s.reviewIndex + 1 >= s.reviewIds.length && s.newIds.length > 0);

@@ -232,7 +232,7 @@
       font-size: 18px;
       font-weight: 800;
     }
-    .flow-row:nth-child(3) .flow-icon { background: var(--coral-soft); color: var(--coral); }
+    .flow-icon--quiz { background: var(--coral-soft); color: var(--coral); }
     .flow-row h3 { margin: 0 0 2px; font-size: 15px; }
     .flow-row p { margin: 0; color: var(--muted); font-size: 12px; }
     .flow-count { font-size: 22px; font-weight: 800; }
@@ -789,6 +789,7 @@
     .dialog-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; padding-top: 8px; }
     .format-note { margin: 14px 0 0; color: var(--muted); font-size: 12px; line-height: 1.6; }
 
+    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
     .toast {
       position: fixed;
       right: 18px;
@@ -879,7 +880,7 @@
       <div class="streak" aria-label="连续学习天数"><span>🔥 连续</span><b id="streakCount">0</b><span>天</span></div>
     </header>
 
-    <main id="main" aria-live="polite"></main>
+    <main id="main"></main>
 
     <nav class="bottom-nav" aria-label="主导航">
       <button class="nav-btn active" data-tab="today" type="button">
@@ -913,6 +914,7 @@
       <p class="format-note">音频字段支持纯 Base64 MP3 或 <code>data:audio/mpeg;base64,...</code>。数据只保存在当前浏览器的 IndexedDB 中。</p>
     </div>
   </dialog>
+  <div id="status" class="sr-only" role="status" aria-live="polite" aria-atomic="true"></div>
   <div class="toast hidden" id="toast" role="status"></div>
   <div class="loading-overlay hidden" id="loadingOverlay" role="status" aria-live="assertive" aria-hidden="true">
     <div class="loading-panel">
@@ -928,7 +930,6 @@
 
     const DB_NAME = "wordstep-db";
     const DB_VERSION = 2;
-    const STORES = ["books", "meta", "progress", "sessions", "activity", "quizResults"];
     const $ = (selector, root = document) => root.querySelector(selector);
     const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
     const main = $("#main");
@@ -939,16 +940,17 @@
     const CUSTOM_BOOK_CATALOG_KEY = "custom-book-catalog";
     const VOICE_ENDPOINT_B64 = "aHR0cHM6Ly9kaWN0LnlvdWRhby5jb20vZGljdHZvaWNlP2F1ZGlvPQ==";
 
+    // hight_school_2000 is a historical ID; keep it stable for saved progress.
     const BUNDLED_BOOKS = [
-      { order: 1, id: "middle_school", name: "初中英语 2000", description: "初中英语核心词汇，含英美音标、核心释义、详细解析、短语、双语例句、辨析与构词记忆", wordCount: 1950, version: "2026.08.09.1", url: "./middle_school_2000.json" },
-      { order: 2, id: "hight_school_2000", name: "高中英语 2000", description: "高中英语、高考核心词汇，不含初中阶段的词汇。", wordCount: 2240, version: "2026.08.09.1", url: "./hight_school_2000.json" },
-	  { order: 3, id: "cet4_1000", name: "CET4 1000", description: "大学英语四级词汇，共 999 词；四级词汇与初中、高中词汇重合度很高，本词书不包含初中、高中词汇，如需完整学习四级词汇，请先学初中、高中词汇。", wordCount: 999, version: "2026.09.01.1", url: "./cet4_1000.json" },
+      { order: 1, id: "middle_school", name: "初中英语 2000", description: "初中英语核心词汇，含英美音标、核心释义、详细解析、短语、双语例句、辨析与构词记忆", wordCount: 1839, version: "2026.08.09.1", url: "./middle_school_2000.json" },
+      { order: 2, id: "hight_school_2000", name: "高中英语 2000", description: "高中英语、高考核心词汇，不含初中阶段的词汇。", wordCount: 2239, version: "2026.08.09.1", url: "./hight_school_2000.json" },
+      { order: 3, id: "cet4_1000", name: "CET4 1000", description: "大学英语四级词汇，共 999 词；四级词汇与初中、高中词汇重合度很高，本词书不包含初中、高中词汇，如需完整学习四级词汇，请先学初中、高中词汇。", wordCount: 999, version: "2026.09.01.1", url: "./cet4_1000.json" },
       { order: 4, id: "cet6_3000", name: "CET6 3000", description: "大学英语六级词汇，不包含四级的词汇，面向已具备四级英语能力的进阶学习者。", wordCount: 3166, version: "2026.09.01.1", url: "./cet6_3000.json" },
-	  { order: 5, id: "toefl_4000", name: "TOEFL 4000", description: "面向中高级英语学习者和准备出国留学的学生；已剔除初中、高中、CET4及CET6词书中已有的词汇，实际收录3983词。", wordCount: 3983, version: "2026.09.01.1", url: "./toefl_4000.json" },
+      { order: 5, id: "toefl_4000", name: "TOEFL 4000", description: "面向中高级英语学习者和准备出国留学的学生；已剔除初中、高中、CET4及CET6词书中已有的词汇，实际收录3983词。", wordCount: 3983, version: "2026.09.01.1", url: "./toefl_4000.json" },
       { order: 6, id: "gre_2000", name: "GRE 2000", description: "GRE进阶词汇；已剔除初中、高中、CET4、CET6及TOEFL词书中已有的词汇，实际收录1902词。", wordCount: 1902, version: "2026.09.01.1", url: "./gre_2000.json" },
-	  { order: 7, id: "kaoyan_2", name: "考研英语二", description: "按主题模块排列的考研英语二进阶高频词汇，覆盖宏观经济与市场现象、企业管理与债务、数据分析与研究方法三大主题。", wordCount: 484, version: "2026.09.02.1", url: "./kaoyan_2.json" },
+      { order: 7, id: "kaoyan_2", name: "考研英语二", description: "按主题模块排列的考研英语二进阶高频词汇，覆盖宏观经济与市场现象、企业管理与债务、数据分析与研究方法三大主题。", wordCount: 484, version: "2026.09.02.1", url: "./kaoyan_2.json" },
       { order: 8, id: "n2607", name: "N2607", description: "AI、技术、商业与通识阅读词汇，含短语、词源与多义例句", wordCount: 748, version: "2026.07.24.1", url: "./n2607.json" },
-	  { order: 9, id: "n2608", name: "N2608", description: "AI、技术、商业与通识阅读进阶词汇，含短语和例句", wordCount: 1156, version: "2026.08.27.1", url: "./n2608.json" },
+      { order: 9, id: "n2608", name: "N2608", description: "AI、技术、商业与通识阅读进阶词汇，含短语和例句", wordCount: 1361, version: "2026.08.27.1", url: "./n2608.json" },
       { order: 10, id: "plant1000", name: "Plant 1000", description: "植物主题词汇，涵盖花卉、树木、蔬果与药用植物，含分类、形态、分布、典故、特性及例句", wordCount: 1000, version: "2026.07.25.1", url: "./plant1000.json" }
     ];
 
@@ -975,12 +977,13 @@
         const store = tx.objectStore(storeName);
         let request;
         try { request = action(store); } catch (error) { reject(error); return; }
+        let result;
         if (request) {
-          request.onsuccess = () => resolve(request.result);
+          request.onsuccess = () => { result = request.result; };
           request.onerror = () => reject(request.error);
-        } else {
-          tx.oncomplete = () => resolve();
         }
+        tx.oncomplete = () => resolve(result);
+        tx.onabort = () => reject(tx.error || new Error("保存已中止，请重试"));
         tx.onerror = () => reject(tx.error);
       });
     }
@@ -988,6 +991,22 @@
     const getAll = store => dbRequest(store, "readonly", s => s.getAll());
     const put = (store, value) => dbRequest(store, "readwrite", s => s.put(value));
     const remove = (store, key) => dbRequest(store, "readwrite", s => s.delete(key));
+
+    function storageErrorMessage(error) {
+      return error?.name === "QuotaExceededError"
+        ? "本机存储空间不足，请释放空间或使用不含音频的较小词书后重试"
+        : `保存失败，请重试${error?.message ? `：${error.message}` : ""}`;
+    }
+
+    function normalizeSettings(settings) {
+      const next = { key: "settings", activeBookId: BUNDLED_BOOKS[0].id, createdAt: localDate(), ...(settings || {}) };
+      const daily = Number(next.dailyNew);
+      next.dailyNew = Number.isFinite(daily) && daily > 0 ? Math.max(1, Math.min(50, Math.floor(daily))) : 20;
+      next.key = "settings";
+      if (typeof next.activeBookId !== "string" || !next.activeBookId) next.activeBookId = BUNDLED_BOOKS[0].id;
+      if (typeof next.createdAt !== "string" || !next.createdAt) next.createdAt = localDate();
+      return next;
+    }
 
     function localDate(offset = 0) {
       const d = new Date();
@@ -1053,6 +1072,11 @@
       for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; }
       return a;
     }
+    function announce(message) {
+      const status = $("#status");
+      status.textContent = message;
+    }
+
     function toast(message) {
       const el = $("#toast");
       el.textContent = message;
@@ -1074,7 +1098,7 @@
     }
 
     function withBundledMetadata(book, source) {
-      return { ...book, id: source.id, name: source.name, description: source.description, wordCount: source.wordCount, order: source.order, version: source.version, builtin: true };
+      return { ...book, words: normalizeWords(book.words), id: source.id, name: source.name, description: source.description, wordCount: book.words.length, order: source.order, version: source.version, builtin: true };
     }
 
     async function loadBundledBook(source) {
@@ -1104,7 +1128,7 @@
       if (source) return loadBundledBook(source);
       const book = await get("books", id);
       if (!book?.words?.length) throw new Error("词书不存在或内容为空");
-      return book;
+      return { ...book, words: normalizeWords(book.words), wordCount: book.words.length };
     }
 
     function customBookMetadata(book) {
@@ -1153,11 +1177,7 @@
       try {
         state.db = await openDB();
         for (const id of REMOVED_BUILTIN_BOOK_IDS) await remove("books", id);
-        state.settings = await get("meta", "settings");
-        if (!state.settings) {
-          state.settings = { key: "settings", activeBookId: BUNDLED_BOOKS[0].id, dailyNew: 20, createdAt: localDate() };
-          await put("meta", state.settings);
-        }
+        state.settings = normalizeSettings(await get("meta", "settings"));
         try {
           state.book = await loadBookById(state.settings.activeBookId);
         } catch (error) {
@@ -1214,58 +1234,71 @@
       };
     }
 
-    async function upgradeSession(session) {
-      let changed = false;
-      if (!Array.isArray(session.quizAnswers)) { session.quizAnswers = []; changed = true; }
-      if (!session.quizOptions) { session.quizOptions = {}; changed = true; }
-      if (!session.quizRetries) { session.quizRetries = {}; changed = true; }
-      if (!session.spellingRetries) { session.spellingRetries = {}; changed = true; }
-      if (!Array.isArray(session.freshIds)) { session.freshIds = [...(session.newIds || [])]; changed = true; }
-      if (!Array.isArray(session.familiarIds)) { session.familiarIds = []; changed = true; }
-      if (typeof session.spellingCorrect !== "number") { session.spellingCorrect = 0; changed = true; }
-      if (typeof session.spellingWrong !== "number") { session.spellingWrong = 0; changed = true; }
-      if (session.completed && session.quizVersion !== 2 && session.newIds?.length) {
-        session.quizVersion = 2;
-        session.quizMode = "spelling";
-        session.quizQueue = [...session.newIds];
-        session.quizIndex = 0;
-        session.quizAnswers = session.quizAnswers.map(answer => ({ ...answer, type: answer.type || "choice" }));
-        session.stage = "quiz";
-        session.completed = false;
-        delete session.completedAt;
-        await remove("activity", session.id);
-        changed = true;
-      } else if (!session.completed && session.quizVersion !== 2) {
-        session.quizVersion = 2;
-        session.quizMode = session.quizMode || "choice";
-        session.quizAnswers = session.quizAnswers.map(answer => ({ ...answer, type: answer.type || "choice" }));
-        changed = true;
+    function normalizeSession(session) {
+      const s = session;
+      if (!Array.isArray(s.newIds)) {
+        const familiar = new Set(Array.isArray(s.familiarIds) ? s.familiarIds : []);
+        const removed = new Set(Array.isArray(s.removedIds) ? s.removedIds : []);
+        s.newIds = [...new Set([s.learnQueue, s.quizQueue, s.learnDone].filter(Array.isArray).flat())]
+          .filter(id => typeof id === "string" && !familiar.has(id) && !removed.has(id));
       }
-      if (session.quizVersion === 2 && !session.quizMode) { session.quizMode = "choice"; changed = true; }
+      const array = key => { s[key] = Array.isArray(s[key]) ? s[key].filter(id => typeof id === "string" && id) : []; };
+      const missingLearnQueue = !Array.isArray(s.learnQueue);
+      const missingQuizQueue = !Array.isArray(s.quizQueue);
+      for (const key of ["reviewIds", "reviewDone", "newIds", "learnDone", "familiarIds", "removedIds"]) array(key);
+      if (!Array.isArray(s.freshIds)) s.freshIds = [...s.newIds];
+      array("freshIds");
+      if (!Array.isArray(s.plannedNewIds)) s.plannedNewIds = [...new Set([...s.newIds, ...s.learnDone, ...s.familiarIds])];
+      if (!Array.isArray(s.plannedReviewIds)) s.plannedReviewIds = [...new Set([...s.reviewIds, ...s.reviewDone])];
+      array("plannedNewIds"); array("plannedReviewIds");
+      s.quizAnswers = Array.isArray(s.quizAnswers) ? s.quizAnswers.filter(a => a && typeof a.wordId === "string").map(a => ({ ...a, type: a.type === "spelling" ? "spelling" : "choice" })) : [];
+      for (const key of ["repeats", "quizOptions", "quizRetries", "spellingRetries"]) {
+        if (!s[key] || typeof s[key] !== "object" || Array.isArray(s[key])) s[key] = {};
+      }
+      for (const key of ["reviewIndex", "learnIndex", "quizIndex", "reviewKnown", "quizCorrect", "quizWrong", "spellingCorrect", "spellingWrong"]) {
+        s[key] = Number.isFinite(s[key]) ? Math.max(0, Math.floor(s[key])) : 0;
+      }
+      s.completed = s.completed === true || s.stage === "complete";
+      if (s.completed) s.stage = "complete";
+      else if (!["review", "learn", "quiz"].includes(s.stage)) s.stage = s.reviewIds.length > s.reviewIndex ? "review" : "learn";
+      if (!s.completed) s.quizVersion = 2;
+      s.quizMode = s.quizMode === "spelling" ? "spelling" : "choice";
+      if (missingLearnQueue) s.learnQueue = [...s.newIds];
+      if (missingQuizQueue) s.quizQueue = s.stage === "quiz" ? [...s.newIds] : [];
+      array("learnQueue"); array("quizQueue");
+      if (!s.completed) {
+        const available = new Set(state.book.words.map(word => word.id));
+        s.removedIds = [...new Set([...s.removedIds, ...s.plannedNewIds.filter(id => !available.has(id)), ...s.plannedReviewIds.filter(id => !available.has(id))])];
+        for (const [queue, index] of [["reviewIds", "reviewIndex"], ["learnQueue", "learnIndex"], ["quizQueue", "quizIndex"]]) {
+          const old = s[queue];
+          const cursor = Math.min(s[index], old.length);
+          s[index] = old.slice(0, cursor).filter(id => available.has(id)).length;
+          s[queue] = old.filter(id => available.has(id));
+        }
+        s.newIds = s.newIds.filter(id => available.has(id));
+      }
+      return s;
+    }
+
+    async function upgradeSession(session) {
+      const previous = JSON.stringify(session);
+      normalizeSession(session);
       if (!Object.prototype.hasOwnProperty.call(session, "reviewSourceDate")) {
-        if (session.reviewIds?.length) {
-          session.reviewSourceDate = localDate(-1);
-          changed = true;
-        } else {
-          const untouched = (session.reviewIndex || 0) === 0
-            && !(session.reviewDone || []).length
-            && (session.learnIndex || 0) === 0
-            && (session.quizIndex || 0) === 0
-            && !(session.quizAnswers || []).length;
-          const allProgress = untouched ? (await getAll("progress")).filter(progress => progress.bookId === state.book.id) : [];
-          const reviewPlan = recentReviewPlan(allProgress);
-          session.reviewSourceDate = reviewPlan.sourceDate;
-          if (untouched && reviewPlan.reviewIds.length) {
-            session.reviewIds = reviewPlan.reviewIds;
-            if (session.completed) await remove("activity", session.id);
+        if (session.reviewIds.length) session.reviewSourceDate = localDate(-1);
+        else {
+          const untouched = !session.completed && session.reviewIndex === 0 && !session.reviewDone.length
+            && session.learnIndex === 0 && session.quizIndex === 0 && !session.quizAnswers.length;
+          const allProgress = untouched ? (await getAll("progress")).filter(p => p.bookId === state.book.id) : [];
+          const plan = recentReviewPlan(allProgress);
+          session.reviewSourceDate = plan.sourceDate;
+          if (untouched && plan.reviewIds.length) {
+            session.reviewIds = plan.reviewIds;
+            session.plannedReviewIds = [...plan.reviewIds];
             session.stage = "review";
-            session.completed = false;
-            delete session.completedAt;
           }
-          changed = true;
         }
       }
-      if (changed) await put("sessions", session);
+      if (previous !== JSON.stringify(session)) await put("sessions", session);
       return session;
     }
 
@@ -1292,6 +1325,7 @@
       session = {
         id, bookId: state.book.id, date: localDate(), reviewSourceDate: reviewPlan.sourceDate, reviewIds, newIds,
         stage: reviewIds.length ? "review" : newIds.length ? "learn" : "complete",
+        plannedNewIds: [...newIds], plannedReviewIds: [...reviewIds], removedIds: [],
         reviewIndex: 0, reviewDone: [], reviewKnown: 0,
         learnQueue: [...newIds], learnIndex: 0, learnDone: [], freshIds, familiarIds: [], repeats: {},
         quizVersion: 2, quizMode: "choice", quizQueue: [], quizIndex: 0, quizCorrect: 0, quizWrong: 0, quizAnswers: [], quizOptions: {}, quizRetries: {}, spellingRetries: {}, spellingCorrect: 0, spellingWrong: 0,
@@ -1313,13 +1347,25 @@
 
     function sessionCounts() {
       const s = state.session;
-      const review = s.reviewIds.length;
-      const learn = s.newIds.length;
-      const quiz = s.newIds.length * (s.quizVersion === 2 ? 2 : 1);
-      const answeredBase = new Set((s.quizAnswers || []).map(answer => `${answer.type || "choice"}:${answer.wordId}`)).size;
-      const total = review + learn + quiz;
-      const done = Math.min(total, s.reviewDone.length + s.learnDone.length + Math.min(answeredBase, quiz));
-      return { review, learn, quiz, total, done, percent: total ? Math.round(done / total * 100) : 100 };
+      const plannedNew = new Set(s.plannedNewIds || s.newIds);
+      const plannedReview = new Set(s.plannedReviewIds || s.reviewIds);
+      const removed = new Set(s.removedIds || []);
+      const familiar = new Set(s.familiarIds || []);
+      const learned = new Set(s.learnDone);
+      const reviewed = new Set(s.reviewDone);
+      const rounds = s.quizVersion === 2 ? ["choice", "spelling"] : ["choice"];
+      const answers = new Set(s.quizAnswers.map(a => `${a.type || "choice"}:${a.wordId}`));
+      const total = plannedReview.size + plannedNew.size * (1 + rounds.length);
+      let done = [...plannedReview].filter(id => reviewed.has(id) || removed.has(id)).length;
+      for (const id of plannedNew) {
+        if (removed.has(id)) { done += 1 + rounds.length; continue; }
+        if (learned.has(id) || familiar.has(id)) done++;
+        for (const type of rounds) if (familiar.has(id) || answers.has(`${type}:${id}`)) done++;
+      }
+      const percent = s.completed ? 100 : total ? Math.min(99, Math.round(done / total * 100)) : 0;
+      return { review: s.reviewIds.length, learn: [...plannedNew].filter(id => !removed.has(id)).length,
+        quiz: s.newIds.length * rounds.length, total, done: Math.min(total, done), percent,
+        exempt: [...plannedNew].filter(id => familiar.has(id) || removed.has(id)).length };
     }
 
     async function refreshHeader() {
@@ -1345,7 +1391,7 @@
         { id: "quiz", label: "今日测验", count: c.quiz }
       ];
       const order = { review: 0, learn: 1, quiz: 2, complete: 3 };
-      return `<div class="stage-rail">${stages.map((x, i) => `<div class="stage-item ${s.stage === x.id ? "active" : ""} ${order[s.stage] > i ? "done" : ""}"><small>${x.label}</small><b>${x.count}</b></div>`).join("")}</div>`;
+      return `${c.exempt ? `<p class="sub">计划进度含 ${c.exempt} 个免测或已移除的词；错题加练另计。</p>` : ""}<div class="stage-rail">${stages.map((x, i) => `<div class="stage-item ${s.stage === x.id ? "active" : ""} ${order[s.stage] > i ? "done" : ""}"><small>${x.label}</small><b>${x.count}</b></div>`).join("")}</div>`;
     }
 
     function render() {
@@ -1371,7 +1417,7 @@
         <div class="card dashboard-card">
           <div class="flow-row"><div class="flow-icon">↺</div><div><h3>${reviewTitle}</h3><p>${reviewCopy}</p></div><div class="flow-count">${c.review}</div></div>
           <div class="flow-row"><div class="flow-icon">Aa</div><div><h3>学习今天的新词</h3><p>详细解析、常用短语、例句、辨析与词源</p></div><div class="flow-count">${c.learn}</div></div>
-          <div class="flow-row"><div class="flow-icon">✓</div><div><h3>完成当天测验</h3><p>释义选择 + 中文提示拼写</p></div><div class="flow-count">${c.quiz}</div></div>
+          <div class="flow-row"><div class="flow-icon flow-icon--quiz">✓</div><div><h3>完成当天测验</h3><p>释义选择 + 中文提示拼写</p></div><div class="flow-count">${c.quiz}</div></div>
           <button class="primary block start-button" type="button" id="startFlow">${action} · ${stageLabel(state.session.stage)}</button>
         </div>
       </section>`;
@@ -1397,7 +1443,7 @@
         await action();
       } catch (error) {
         console.error("学习操作失败", error);
-        toast("操作失败，请重试");
+        toast(storageErrorMessage(error));
         if (state.session.stage === "learn") renderFlow();
       } finally {
         state.studyActionPending = false;
@@ -1483,9 +1529,22 @@
     }
 
     function highlightWord(sentence, word) {
-      const safe = esc(sentence);
-      const pattern = word.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-      return safe.replace(new RegExp(`\\b(${pattern})\\b`, "ig"), `<strong style="color:var(--indigo)">$1</strong>`);
+      const text = String(sentence || "");
+      const needle = String(word || "");
+      if (!needle) return esc(text);
+      const pattern = needle.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      const regex = new RegExp(pattern, "igu");
+      const isWordPart = char => Boolean(char) && /[\p{L}\p{N}_-]/u.test(char);
+      let result = "", cursor = 0;
+      for (const match of text.matchAll(regex)) {
+        const start = match.index, end = start + match[0].length;
+        const before = Array.from(text.slice(0, start)).pop();
+        const after = Array.from(text.slice(end))[0];
+        if (isWordPart(before) || isWordPart(after)) continue;
+        result += esc(text.slice(cursor, start)) + `<strong style="color:var(--indigo)">${esc(match[0])}</strong>`;
+        cursor = end;
+      }
+      return result + esc(text.slice(cursor));
     }
 
     function stopPronunciationPlayback() {
@@ -1502,7 +1561,7 @@
     async function playRemotePronunciation(word, requestedType, button) {
       const type = requestedType === 1 ? 1 : 2;
       const current = playRemotePronunciation.current;
-      if (current?.button === button && !current.audio.paused) {
+      if (current?.button === button) {
         stopPronunciationPlayback();
         return;
       }
@@ -1518,6 +1577,7 @@
       };
       audio.onended = finish;
       audio.onerror = () => {
+        if (playRemotePronunciation.current?.audio !== audio) return;
         finish();
         toast(`${type === 1 ? "英音" : "美音"}播放失败，请稍后重试`);
       };
@@ -1527,7 +1587,9 @@
       try {
         await audio.play();
       } catch (error) {
+        if (playRemotePronunciation.current?.audio !== audio) return;
         finish();
+        if (error?.name === "AbortError") return;
         console.error("发音播放失败", error);
         toast(`${type === 1 ? "英音" : "美音"}播放失败，请检查网络后重试`);
       }
@@ -1658,6 +1720,7 @@
 
     async function advanceStage() {
       const s = state.session;
+      normalizeSession(s);
       if (s.stage === "review" && s.reviewIndex >= s.reviewIds.length) {
         s.stage = s.newIds.length ? "learn" : "complete";
       }
@@ -1672,6 +1735,7 @@
           s.quizMode = "spelling";
           s.quizQueue = [...s.newIds];
           s.quizIndex = 0;
+          if (!s.quizQueue.length) s.stage = "complete";
         } else {
           s.stage = "complete";
         }
@@ -1697,7 +1761,7 @@
       const fallback = ["逐渐减少；缩小", "明确表达；阐明", "相互依赖的；关联的"];
       while (distractors.length < 3) distractors.push(fallback[distractors.length]);
       s.quizOptions[indexKey] = shuffle([word.meaning, ...distractors]);
-      put("sessions", s);
+      void put("sessions", s).catch(error => { console.error(error); toast(storageErrorMessage(error)); });
       return s.quizOptions[indexKey];
     }
 
@@ -1708,6 +1772,7 @@
       const s = state.session;
       const options = getQuizOptions(word);
       const answered = state.quizAnswered;
+      announce(answered ? (state.selectedAnswer === word.meaning ? "回答正确" : "回答错误，请查看正确答案") : `释义选择，第 ${s.quizIndex + 1} 题，共 ${s.quizQueue.length} 题`);
       const isCorrect = state.selectedAnswer !== null && state.selectedAnswer === word.meaning;
       const c = sessionCounts();
       main.innerHTML = `<section class="screen">
@@ -1733,6 +1798,8 @@
     async function answerQuiz(answer) {
       if (state.quizAnswered) return;
       const word = currentWord();
+      if (!word) { await advanceStage(); return; }
+      const previousSession = structuredClone(state.session);
       const correct = answer !== null && answer === word.meaning;
       state.quizAnswered = true;
       state.selectedAnswer = answer;
@@ -1751,9 +1818,33 @@
       progress.lastTestAt = Date.now();
       if (!correct) markForConsolidation(progress, "fuzzy");
       progress.mastery = Math.max(0, Math.min(100, Math.round(((progress.correct || 0) * 2 + (progress.reviewCount || 0)) / Math.max(1, (progress.correct || 0) * 2 + (progress.reviewCount || 0) + (progress.wrong || 0) * 2) * 100)));
-      await put("progress", progress);
-      await put("sessions", s);
-      renderQuiz();
+      if (await persistQuizAnswer(progress, previousSession, s) && state.session === s && state.flowOpen && state.tab === "today") renderQuiz();
+    }
+
+    async function persistQuizAnswer(progress, previousSession, session) {
+      try {
+        // The answer and word statistics must either both commit or both roll back.
+        await new Promise((resolve, reject) => {
+          const tx = state.db.transaction(["progress", "sessions"], "readwrite");
+          tx.oncomplete = resolve;
+          tx.onabort = () => reject(tx.error || new Error("保存已中止"));
+          tx.onerror = () => reject(tx.error);
+          try {
+            tx.objectStore("progress").put(progress);
+            tx.objectStore("sessions").put(session);
+          } catch (error) { tx.abort(); reject(error); }
+        });
+        return true;
+      } catch (error) {
+        if (state.session === session) {
+          state.session = previousSession;
+          state.quizAnswered = false;
+          state.selectedAnswer = null;
+          if (state.flowOpen && state.tab === "today") renderQuiz();
+        }
+        toast(storageErrorMessage(error));
+        return false;
+      }
     }
 
     function normalizeSpelling(value) {
@@ -1765,6 +1856,7 @@
       if (!word) { advanceStage(); return; }
       const s = state.session;
       const answered = state.quizAnswered;
+      announce(answered ? (normalizeSpelling(state.selectedAnswer) === normalizeSpelling(word.word) ? "拼写正确" : "拼写错误，请查看正确答案") : `拼写，第 ${s.quizIndex + 1} 题，共 ${s.quizQueue.length} 题`);
       const isCorrect = normalizeSpelling(state.selectedAnswer) === normalizeSpelling(word.word);
       const c = sessionCounts();
       main.innerHTML = `<section class="screen">
@@ -1775,7 +1867,7 @@
           <span class="quiz-kind">第二轮 · 拼写</span>
           <p class="spelling-hint">根据中文意思写出英文单词</p>
           <div class="spelling-meaning">${esc(word.meaning)}</div>
-          <div class="spelling-hint spelling-meta"><span>${word.word.length} 个字母</span>${word.phonetic ? phoneticWithAudioHTML(word, true) : ""}</div>
+          <div class="spelling-hint spelling-meta"><span>${Array.from(word.word).length} 个字符（含空格和标点）</span>${word.phonetic ? phoneticWithAudioHTML(word, true) : ""}</div>
           <form class="spelling-form" id="spellingForm">
             <input class="spelling-input ${answered ? (isCorrect ? "correct" : "wrong") : ""}" id="spellingInput" name="spelling" type="text" value="${esc(state.selectedAnswer || "")}" placeholder="输入英文单词" autocomplete="off" autocapitalize="none" spellcheck="false" enterkeyhint="done" ${answered ? "disabled" : ""} aria-label="输入对应英文单词">
           </form>
@@ -1795,6 +1887,8 @@
     async function answerSpelling(answer) {
       if (state.quizAnswered) return;
       const word = currentWord();
+      if (!word) { await advanceStage(); return; }
+      const previousSession = structuredClone(state.session);
       const correct = normalizeSpelling(answer) === normalizeSpelling(word.word);
       state.quizAnswered = true;
       state.selectedAnswer = String(answer || "").trim();
@@ -1817,9 +1911,7 @@
       progress.lastTestAt = Date.now();
       if (!correct) markForConsolidation(progress, "spelling");
       progress.mastery = Math.max(0, Math.min(100, Math.round(((progress.correct || 0) * 2 + (progress.reviewCount || 0)) / Math.max(1, (progress.correct || 0) * 2 + (progress.reviewCount || 0) + (progress.wrong || 0) * 2) * 100)));
-      await put("progress", progress);
-      await put("sessions", s);
-      renderSpellingQuiz();
+      if (await persistQuizAnswer(progress, previousSession, s) && state.session === s && state.flowOpen && state.tab === "today") renderSpellingQuiz();
     }
 
     async function nextQuiz() {
@@ -1831,9 +1923,11 @@
 
     async function saveActivity(s, completed = true) {
       const id = `${s.bookId}:${s.date}`;
+      const previous = await get("activity", id);
+      completed = completed || previous?.completed === true;
       const freshIds = new Set(s.freshIds || s.newIds || []);
       const learned = [...new Set(s.learnDone || [])].filter(wordId => freshIds.has(wordId)).length;
-      await put("activity", { id, bookId: s.bookId, date: s.date, completed: Boolean(completed), reviewed: s.reviewDone.length, learned, quizCorrect: s.quizCorrect, quizWrong: s.quizWrong, spellingCorrect: s.spellingCorrect || 0, spellingWrong: s.spellingWrong || 0, updatedAt: Date.now(), completedAt: completed ? (s.completedAt || Date.now()) : null });
+      await put("activity", { id, bookId: s.bookId, date: s.date, completed: Boolean(completed), reviewed: s.reviewDone.length, learned, quizCorrect: s.quizCorrect, quizWrong: s.quizWrong, spellingCorrect: s.spellingCorrect || 0, spellingWrong: s.spellingWrong || 0, updatedAt: Date.now(), completedAt: completed ? (previous?.completedAt || s.completedAt || Date.now()) : null });
     }
 
     function renderSummary() {
@@ -1851,8 +1945,18 @@
       $("#viewStats").addEventListener("click", () => { state.tab = "stats"; $$(".nav-btn").forEach(x => x.classList.toggle("active", x.dataset.tab === "stats")); render(); });
     }
 
+    function reviewDetailHTML(word) {
+      return `${analysisHTML(word.analysis)}${phraseSectionHTML(word, true)}${word.examples.map(x => `<div class="example"><p>${highlightWord(x.en, word.word)}</p><small>${esc(x.zh)}</small></div>`).join("")}<div class="chip-list">${word.synonyms.map(x => `<span class="chip"><b>${esc(x.word)}</b>${x.note ? ` · ${esc(x.note)}` : ""}</span>`).join("")}${word.confusables.map(x => `<span class="chip"><b>${esc(x.word)}</b>${x.note ? ` · ${esc(x.note)}` : ""}</span>`).join("")}</div>${etymologySectionHTML(word, true)}`;
+    }
+
     async function renderReview() {
-      const progress = (await getAll("progress")).filter(p => p.bookId === state.book.id);
+      const requestId = renderReview.requestId = (renderReview.requestId || 0) + 1;
+      const book = state.book;
+      const filter = state.reviewFilter;
+      const progress = (await getAll("progress")).filter(p => p.bookId === book.id);
+      if (requestId !== renderReview.requestId || state.tab !== "review" || state.book !== book || state.reviewFilter !== filter) return;
+      const searchIndex = new Map();
+      const wordsById = new Map(book.words.map(word => [word.id, word]));
       const progressByWord = new Map(progress.map(p => [p.wordId, p]));
       let words;
       if (state.reviewFilter === "consolidate") {
@@ -1914,42 +2018,62 @@
           const wordSizeClass = wordLength >= 22 ? "is-very-long" : wordLength >= 16 ? "is-long" : "";
           const typeTags = state.reviewFilter === "consolidate" ? `<div class="review-tags">${types.map(type => `<span class="review-tag ${type}">${type === "spelling" ? "拼写错误" : "记忆模糊"}</span>`).join("")}</div>` : "";
           const searchText = `${word.word} ${word.phonetic} ${word.meaning} ${word.analysis} ${(word.phrases || []).map(x => `${x.en} ${x.zh}`).join(" ")} ${word.etymology?.root || ""} ${word.etymology?.explanation || ""}`.toLowerCase();
-          return `<details class="review-card" data-review-search="${esc(searchText)}">
+          searchIndex.set(word.id, searchText);
+          return `<details class="review-card" data-review-word="${esc(word.id)}">
             <summary><div><div class="review-word"><b class="${wordSizeClass}">${esc(word.word)}</b>${word.phonetic ? phoneticWithAudioHTML(word, true) : ""}</div><p class="review-meaning">${esc(word.meaning)}</p>${typeTags}</div><div class="review-meta">${hasRecordedAudio(word) ? `<button class="mini-audio" type="button" data-review-audio="${esc(word.id)}" aria-label="播放 ${esc(word.word)} 的录制发音">▶</button>` : ""}${action}<span>${statusLabel}</span></div></summary>
-            <div class="review-detail">${analysisHTML(word.analysis)}${phraseSectionHTML(word, true)}${word.examples.map(x => `<div class="example"><p>${highlightWord(x.en, word.word)}</p><small>${esc(x.zh)}</small></div>`).join("")}<div class="chip-list">${word.synonyms.map(x => `<span class="chip"><b>${esc(x.word)}</b>${x.note ? ` · ${esc(x.note)}` : ""}</span>`).join("")}${word.confusables.map(x => `<span class="chip"><b>${esc(x.word)}</b>${x.note ? ` · ${esc(x.note)}` : ""}</span>`).join("")}</div>${etymologySectionHTML(word, true)}</div>
+            <div class="review-detail"></div>
           </details>`;
         }).join("") : `<div class="card empty"><h2>${emptyCopy.title}</h2><p>${emptyCopy.body}</p>${state.reviewFilter === "unlearned" ? "" : `<button class="primary small-button" type="button" id="goStudy">去今日学习</button>`}</div>`}</div>
       </section>`;
       $$("[data-review-filter]").forEach(btn => btn.addEventListener("click", () => { state.reviewFilter = btn.dataset.reviewFilter; state.reviewQuery = ""; renderReview(); }));
-      $$("[data-review-audio]").forEach(btn => btn.addEventListener("click", event => {
+      const list = $("#reviewList");
+      const valid = () => state.tab === "review" && state.book === book && list.isConnected && requestId === renderReview.requestId;
+      list.addEventListener("toggle", event => {
+        const card = event.target;
+        if (!valid() || !card.matches("details[data-review-word]") || !card.open || card.dataset.loaded) return;
+        const word = wordsById.get(card.dataset.reviewWord);
+        if (!word) return;
+        $(".review-detail", card).innerHTML = reviewDetailHTML(word);
+        card.dataset.loaded = "true";
+      }, true);
+      list.addEventListener("click", async event => {
+        const button = event.target.closest("[data-review-audio], [data-relearn-word], [data-skip-word], [data-consolidated-word]");
+        if (!button || !valid()) return;
         event.preventDefault(); event.stopPropagation();
-        const word = state.book.words.find(item => item.id === btn.dataset.reviewAudio);
-        if (word) playAudio(word, btn);
-      }));
-      $$("[data-relearn-word]").forEach(btn => btn.addEventListener("click", async event => {
-        event.preventDefault(); event.stopPropagation();
-        btn.disabled = true;
-        await queueWordForRelearning(btn.dataset.relearnWord);
-      }));
-      $$("[data-skip-word]").forEach(btn => btn.addEventListener("click", async event => {
-        event.preventDefault(); event.stopPropagation();
-        btn.disabled = true;
-        await skipWord(btn.dataset.skipWord);
-      }));
-      $$("[data-consolidated-word]").forEach(btn => btn.addEventListener("click", async event => {
-        event.preventDefault(); event.stopPropagation();
-        btn.disabled = true;
-        await clearConsolidation(btn.dataset.consolidatedWord);
-      }));
+        if (button.disabled) return;
+        if (button.hasAttribute("data-review-audio")) {
+          const word = wordsById.get(button.dataset.reviewAudio);
+          if (word) playAudio(word, button);
+          return;
+        }
+        button.disabled = true;
+        try {
+          if (button.hasAttribute("data-relearn-word")) await queueWordForRelearning(button.dataset.relearnWord);
+          else if (button.hasAttribute("data-skip-word")) await skipWord(button.dataset.skipWord);
+          else await clearConsolidation(button.dataset.consolidatedWord);
+        } catch (error) { toast(storageErrorMessage(error)); }
+        finally { button.disabled = false; }
+      });
       const search = $("#reviewSearch");
+      const cards = $$("[data-review-word]", list);
+      const filterCards = () => {
+        if (!valid()) return;
+        const query = state.reviewQuery.trim().toLowerCase();
+        let visible = 0;
+        for (const card of cards) {
+          const show = !query || searchIndex.get(card.dataset.reviewWord).includes(query);
+          card.classList.toggle("hidden", !show);
+          if (show) visible++;
+        }
+        $("#reviewResultCount").textContent = `${visible} 个词`;
+      };
+      let searchTimer;
       search.addEventListener("input", () => {
         state.reviewQuery = search.value;
-        const query = search.value.trim().toLowerCase();
-        let visible = 0;
-        $$("[data-review-search]").forEach(card => { const show = !query || card.dataset.reviewSearch.includes(query); card.classList.toggle("hidden", !show); if (show) visible++; });
-        $("#reviewResultCount").textContent = `${visible} 个词`;
+        clearTimeout(searchTimer);
+        searchTimer = setTimeout(filterCards, 120);
       });
-      if (state.reviewQuery) search.dispatchEvent(new Event("input"));
+      filterCards();
       const goStudy = $("#goStudy");
       if (goStudy) goStudy.addEventListener("click", () => { state.tab = "today"; $$(".nav-btn").forEach(x => x.classList.toggle("active", x.dataset.tab === "today")); render(); });
     }
@@ -1998,6 +2122,7 @@
 
       const s = state.session;
       const previous = JSON.stringify([s.newIds, s.reviewIds, s.learnQueue, s.quizQueue]);
+      if (!s.removedIds.includes(wordId)) s.removedIds.push(wordId);
       s.newIds = s.newIds.filter(id => id !== wordId);
       s.reviewIds = withoutFutureWord(s.reviewIds, s.reviewIndex, wordId);
       s.learnQueue = withoutFutureWord(s.learnQueue, s.learnIndex, wordId);
@@ -2073,9 +2198,26 @@
       renderStatsQuiz();
     }
 
+    function statsQuizIsValid(quiz) {
+      if (!quiz || quiz.bookId !== state.book.id || !Array.isArray(quiz.questions) || quiz.questions.length !== 100) return false;
+      if (!Number.isInteger(quiz.index) || quiz.index < 0 || quiz.index >= quiz.questions.length) return false;
+      const words = new Set(state.book.words.map(word => word.id));
+      return new Set(quiz.questions.map(q => q?.wordId)).size === 100
+        && quiz.questions.every(q => q && words.has(q.wordId) && Array.isArray(q.options));
+    }
+
+    function renderInvalidStatsQuiz() {
+      const scope = state.statsQuiz?.scope || "all";
+      main.innerHTML = `<section class="screen"><div class="card empty"><h2>本次测验需要重新开始</h2><p>词书或题目已发生变化，本次结果不会保存。请重新抽题。</p><div class="actions"><button class="secondary" id="invalidQuizBack" type="button">返回统计</button><button class="primary" id="invalidQuizRestart" type="button">重新开始</button></div></div></section>`;
+      announce("词书或题目已发生变化，请重新开始测验");
+      $("#invalidQuizBack").addEventListener("click", () => { state.statsQuiz = null; renderStats(); });
+      $("#invalidQuizRestart").addEventListener("click", () => { state.statsQuiz = null; startStatsQuiz(scope); });
+    }
+
     function renderStatsQuiz() {
       const quiz = state.statsQuiz;
       if (!quiz) return renderStats();
+      if (!statsQuizIsValid(quiz)) return renderInvalidStatsQuiz();
       if (quiz.completed) {
         main.innerHTML = `<section class="screen">
           <p class="eyebrow">100-WORD TEST</p>
@@ -2091,9 +2233,10 @@
       }
       const question = quiz.questions[quiz.index];
       const word = state.book.words.find(item => item.id === question.wordId);
-      if (!word) { quiz.index++; return renderStatsQuiz(); }
+      if (!word) return renderInvalidStatsQuiz();
       const percent = Math.round((quiz.index + (quiz.answered ? 1 : 0)) / quiz.questions.length * 100);
       const isCorrect = quiz.selected !== null && quiz.selected === word.meaning;
+      announce(quiz.answered ? (isCorrect ? "回答正确" : "回答错误，请查看正确答案") : `第 ${quiz.index + 1} 题，共 ${quiz.questions.length} 题`);
       main.innerHTML = `<section class="screen">
         <div class="standalone-quiz-head"><div><p class="eyebrow">100-WORD TEST</p><h1>${quiz.scope === "learned" ? "已学单词测验" : "全词书测验"}</h1></div><button class="ghost" type="button" id="exitStatsQuiz">退出测验</button></div>
         <div class="today-head test-progress"><div><h2>第 ${quiz.index + 1} 题 <span class="sub">/ ${quiz.questions.length}</span></h2></div><div class="completion">当前答对 ${quiz.correct} 题</div></div>
@@ -2121,6 +2264,7 @@
     function answerStatsQuiz(answer) {
       const quiz = state.statsQuiz;
       if (!quiz || quiz.answered) return;
+      if (!statsQuizIsValid(quiz)) return renderInvalidStatsQuiz();
       const question = quiz.questions[quiz.index];
       const word = state.book.words.find(item => item.id === question.wordId);
       const correct = answer !== null && answer === word.meaning;
@@ -2133,7 +2277,8 @@
 
     async function nextStatsQuizQuestion() {
       const quiz = state.statsQuiz;
-      if (!quiz?.answered) return;
+      if (!quiz?.answered || quiz.saving) return;
+      if (!statsQuizIsValid(quiz)) return renderInvalidStatsQuiz();
       if (quiz.index + 1 < quiz.questions.length) {
         quiz.index++;
         quiz.answered = false;
@@ -2141,11 +2286,17 @@
         renderStatsQuiz();
         return;
       }
-      quiz.completed = true;
-      quiz.completedAt = Date.now();
-      quiz.score = Math.round(quiz.correct / quiz.questions.length * 100);
-      await put("quizResults", { id: quiz.id, bookId: quiz.bookId, scope: quiz.scope || "all", date: localDate(), score: quiz.score, total: 100, correct: quiz.correct, completedAt: quiz.completedAt });
-      renderStatsQuiz();
+      quiz.saving = true;
+      const completedAt = Date.now();
+      const score = Math.round(quiz.correct / quiz.questions.length * 100);
+      try {
+        await put("quizResults", { id: quiz.id, bookId: quiz.bookId, scope: quiz.scope || "all", date: localDate(), score, total: quiz.questions.length, correct: quiz.correct, completedAt });
+        quiz.completed = true;
+        quiz.completedAt = completedAt;
+        quiz.score = score;
+        if (state.statsQuiz === quiz && state.tab === "stats") renderStatsQuiz();
+      } catch (error) { toast(storageErrorMessage(error)); }
+      finally { quiz.saving = false; }
     }
 
     async function renderStats() {
@@ -2226,7 +2377,7 @@
 
     async function openBooks() {
       state.books = await getBookCatalog();
-      $("#bookList").innerHTML = state.books.map(book => `<button class="book-item ${book.id === state.book.id ? "active" : ""}" type="button" data-book-id="${esc(book.id)}"><div><h3>${esc(book.name)}</h3><p>${book.wordCount} 个词 · ${esc(book.description)}</p></div>${book.id === state.book.id ? `<span class="check">✓</span>` : ""}</button>`).join("");
+      $("#bookList").innerHTML = state.books.map(book => `<button class="book-item ${book.id === state.book.id ? "active" : ""}" type="button" data-book-id="${esc(book.id)}"><div><h3>${esc(book.name)}</h3><p>${book.id === state.book.id ? state.book.words.length : book.wordCount} 个词 · ${esc(book.description)}</p></div>${book.id === state.book.id ? `<span class="check">✓</span>` : ""}</button>`).join("");
       $$("[data-book-id]").forEach(btn => btn.addEventListener("click", () => switchBook(btn.dataset.bookId)));
       bookDialog.showModal();
     }
@@ -2275,29 +2426,52 @@
       }
     }
 
-    function normalizeBook(raw) {
-      if (!raw || typeof raw !== "object" || !Array.isArray(raw.words) || !raw.words.length) throw new Error("JSON 中缺少 words 数组");
-      const id = String(raw.id || `book-${Date.now()}`).replace(/[^a-zA-Z0-9_-]/g, "-");
-      const words = raw.words.map((item, index) => {
-        if (!item || !item.word) throw new Error(`第 ${index + 1} 个单词缺少 word 字段`);
-        const list = value => Array.isArray(value) ? value.map(x => typeof x === "string" ? { word: x, note: "" } : { word: x.word || x.term || "", note: x.note || x.meaning || "" }).filter(x => x.word) : [];
-        const examples = Array.isArray(item.examples) ? item.examples.map(x => typeof x === "string" ? { en: x, zh: "" } : { en: x.en || x.sentence || "", zh: x.zh || x.translation || "" }).filter(x => x.en) : [];
-        const phrases = Array.isArray(item.phrases || item.commonPhrases) ? (item.phrases || item.commonPhrases).map(x => typeof x === "string" ? { en: x, zh: "" } : { en: x.en || x.phrase || x.text || "", zh: x.zh || x.translation || x.explanation || "" }).filter(x => x.en) : [];
-        const origin = item.etymology || item.wordOrigin || {};
-        const etymology = typeof origin === "string" ? { root: "", rootMeaning: "", explanation: origin, cognates: [], memory: "" } : {
-          root: String(origin.root || origin.base || ""), rootMeaning: String(origin.rootMeaning || origin.baseMeaning || ""),
-          explanation: String(origin.explanation || origin.origin || ""), cognates: list(origin.cognates || origin.relatedWords), memory: String(origin.memory || origin.memoryTip || "")
-        };
-        return {
-          id: String(item.id || item.word.toLowerCase()).replace(/\s+/g, "-"), word: String(item.word),
-          phonetic: String(item.phonetic || item.ipa || ""), audioBase64: String(item.audioBase64 || item.audio || ""),
-          meaning: String(item.meaning || item.definition || item.translation || ""),
-          analysis: String(item.analysis || item.explanation || ""), phrases, examples, synonyms: list(item.synonyms), confusables: list(item.confusables || item.similarWords), etymology
-        };
+    function normalizeWords(rawWords) {
+      if (!Array.isArray(rawWords) || !rawWords.length) throw new Error("JSON 中缺少 words 数组");
+      const object = value => value && typeof value === "object" && !Array.isArray(value) ? value : {};
+      const list = value => Array.isArray(value) ? value.map(value => {
+        if (typeof value === "string") return { word: value, note: "" };
+        const x = object(value);
+        return { word: String(x.word || x.term || ""), note: String(x.note || x.meaning || "") };
+      }).filter(x => x.word) : [];
+      const bilingual = (value, phrase = false) => Array.isArray(value) ? value.map(value => {
+        if (typeof value === "string") return { en: value, zh: "" };
+        const x = object(value);
+        return { en: String(x.en || (phrase ? x.phrase || x.text : x.sentence) || ""), zh: String(x.zh || x.translation || (phrase ? x.explanation : "") || "") };
+      }).filter(x => x.en) : [];
+      // Reserve every supplied ID before assigning suffixes to duplicate entries.
+      const bases = rawWords.map((item, index) => {
+        if (!item || typeof item.word !== "string" || !item.word.trim()) throw new Error(`第 ${index + 1} 个单词缺少有效 word 字段`);
+        return item.id != null && String(item.id) ? String(item.id) : item.word.trim().toLowerCase().replace(/\s+/g, "-");
       });
-      const ids = new Set();
-      words.forEach(w => { if (ids.has(w.id)) w.id = `${w.id}-${ids.size}`; ids.add(w.id); });
-      return { id, name: String(raw.name || raw.title || "导入的单词书"), description: String(raw.description || "自定义 JSON 词书"), builtin: false, importedAt: Date.now(), words };
+      const reserved = new Set(bases);
+      const used = new Set();
+      return rawWords.map((item, index) => {
+        const base = bases[index];
+        let id = base, suffix = 1;
+        if (used.has(id)) {
+          do { id = `${base}-${suffix++}`; } while (used.has(id) || reserved.has(id));
+        }
+        used.add(id);
+        const origin = item.etymology || item.wordOrigin;
+        const root = object(origin);
+        const etymology = typeof origin === "string" ? { root: "", rootMeaning: "", explanation: origin, cognates: [], memory: "" } : {
+          root: String(root.root || root.base || ""), rootMeaning: String(root.rootMeaning || root.baseMeaning || ""),
+          explanation: String(root.explanation || root.origin || ""), cognates: list(root.cognates || root.relatedWords), memory: String(root.memory || root.memoryTip || "")
+        };
+        return { ...item, id, word: item.word,
+          phonetic: String(item.phonetic || item.ipa || ""), audioBase64: String(item.audioBase64 || item.audio || ""),
+          meaning: String(item.meaning || item.definition || item.translation || ""), analysis: String(item.analysis || item.explanation || ""),
+          phrases: bilingual(item.phrases || item.commonPhrases, true), examples: bilingual(item.examples),
+          synonyms: list(item.synonyms), confusables: list(item.confusables || item.similarWords), etymology };
+      });
+    }
+
+    function normalizeBook(raw) {
+      if (!raw || typeof raw !== "object") throw new Error("词书格式无效");
+      const words = normalizeWords(raw.words);
+      const id = String(raw.id || `book-${Date.now()}`).replace(/[^a-zA-Z0-9_-]/g, "-");
+      return { id, name: String(raw.name || raw.title || "导入的单词书"), description: String(raw.description || "自定义 JSON 词书"), builtin: false, importedAt: Date.now(), wordCount: words.length, words };
     }
 
     async function importBook(event) {
@@ -2314,13 +2488,16 @@
         state.books = await getBookCatalog();
         await switchBook(book.id);
         toast(`已导入 ${book.words.length} 个单词`);
-      } catch (error) { toast(`导入失败：${error.message || "JSON 格式不正确"}`); }
+      } catch (error) { toast(error?.name === "QuotaExceededError" ? storageErrorMessage(error) : `导入失败：${error.message || "JSON 格式不正确"}`); }
     }
 
     function downloadFile(name, data, type = "application/json") {
       const blob = new Blob([data], { type });
       const url = URL.createObjectURL(blob);
-      const a = document.createElement("a"); a.href = url; a.download = name; a.click();
+      const a = document.createElement("a"); a.href = url; a.download = name;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
       setTimeout(() => URL.revokeObjectURL(url), 1000);
     }
 

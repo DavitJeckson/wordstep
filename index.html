@@ -319,27 +319,44 @@
     }
     .audio-btn.playing { animation: pulse .8s ease-in-out infinite alternate; }
     @keyframes pulse { to { box-shadow: 0 0 0 8px rgba(79,70,229,.08); } }
-    .word-detail { padding: 0 22px 22px; }
+    .word-detail { padding: 0 22px; }
     .meaning {
       margin: 0;
       padding: 16px 0;
       border-top: 1px solid var(--line);
-      border-bottom: 1px solid var(--line);
       font-size: 17px;
       font-weight: 650;
       line-height: 1.6;
     }
-    .analysis { margin: 13px 0 0; color: #4b5161; font-size: 14px; line-height: 1.7; }
-    .analysis-sectioned { display: grid; gap: 10px; }
-    .analysis-sectioned p { margin: 0; }
+    .analysis { color: #4b5161; font-size: 14px; line-height: 1.7; }
+    .analysis-section + .analysis-section { margin-top: 10px; }
+    .analysis p, .analysis ul, .analysis ol { margin: 0 0 12px; }
+    .analysis > :last-child, .analysis-section > :last-child { margin-bottom: 0; }
+    .analysis h1, .analysis h2, .analysis h3, .analysis h4, .analysis h5, .analysis h6 {
+      margin: 16px 0 7px;
+      color: #30364a;
+      font-weight: 750;
+      line-height: 1.45;
+    }
+    .analysis h1 { font-size: 17px; }
+    .analysis h2 { font-size: 16px; }
+    .analysis h3 { font-size: 15px; }
+    .analysis h4, .analysis h5, .analysis h6 { font-size: 14px; }
+    .analysis > :first-child, .analysis-section > :first-child { margin-top: 0; }
+    .analysis ul, .analysis ol { padding-left: 1.5em; }
+    .analysis li + li { margin-top: 4px; }
+    .analysis a { color: var(--indigo-dark); text-decoration: underline; overflow-wrap: anywhere; }
+    .analysis code { padding: 1px 4px; border-radius: 4px; background: var(--surface-2); font-size: .92em; }
     .analysis-label {
       display: block;
       margin-bottom: 2px;
       color: var(--indigo-dark);
-      font-size: 13px;
+      font-size: 17px;
       font-weight: 800;
       line-height: 1.5;
     }
+    .analysis-details summary .analysis-label { margin-bottom: 0; }
+    .analysis-details summary.icon-only { justify-content: flex-end; }
     .reveal-placeholder {
       display: grid;
       min-height: 138px;
@@ -665,7 +682,9 @@
       cursor: pointer;
     }
     .review-detail { padding: 0 15px 16px; border-top: 1px solid var(--line); }
-    .review-detail .analysis { margin-bottom: 14px; }
+    .review-detail .analysis-details { margin-bottom: 14px; border-top: 0; }
+    .review-detail .analysis-details summary { padding: 0; }
+    .review-detail .analysis-details .detail-body { padding: 0; }
     .review-result-count { color: var(--muted); font-size: 12px; font-weight: 650; }
 
     .quiz-kind {
@@ -942,15 +961,15 @@
 
     // hight_school_2000 is a historical ID; keep it stable for saved progress.
     const BUNDLED_BOOKS = [
-      { order: 1, id: "middle_school", name: "初中英语 2000", description: "初中英语核心词汇，含英美音标、核心释义、详细解析、短语、双语例句、辨析与构词记忆", wordCount: 1839, version: "2026.08.09.1", url: "./middle_school_2000.json" },
-      { order: 2, id: "hight_school_2000", name: "高中英语 2000", description: "高中英语、高考核心词汇，不含初中阶段的词汇。", wordCount: 2239, version: "2026.08.09.1", url: "./hight_school_2000.json" },
-      { order: 3, id: "cet4_1000", name: "CET4 1000", description: "大学英语四级词汇，共 999 词；四级词汇与初中、高中词汇重合度很高，本词书不包含初中、高中词汇，如需完整学习四级词汇，请先学初中、高中词汇。", wordCount: 999, version: "2026.09.01.1", url: "./cet4_1000.json" },
-      { order: 4, id: "cet6_3000", name: "CET6 3000", description: "大学英语六级词汇，不包含四级的词汇，面向已具备四级英语能力的进阶学习者。", wordCount: 3166, version: "2026.09.01.1", url: "./cet6_3000.json" },
-      { order: 5, id: "toefl_4000", name: "TOEFL 4000", description: "面向中高级英语学习者和准备出国留学的学生；已剔除初中、高中、CET4及CET6词书中已有的词汇，实际收录3983词。", wordCount: 3983, version: "2026.09.01.1", url: "./toefl_4000.json" },
-      { order: 6, id: "gre_2000", name: "GRE 2000", description: "GRE进阶词汇；已剔除初中、高中、CET4、CET6及TOEFL词书中已有的词汇，实际收录1902词。", wordCount: 1902, version: "2026.09.01.1", url: "./gre_2000.json" },
-      { order: 7, id: "kaoyan_2", name: "考研英语二", description: "按主题模块排列的考研英语二进阶高频词汇，覆盖宏观经济与市场现象、企业管理与债务、数据分析与研究方法三大主题。", wordCount: 484, version: "2026.09.02.1", url: "./kaoyan_2.json" },
-      { order: 8, id: "n2607", name: "N2607", description: "AI、技术、商业与通识阅读词汇，含短语、词源与多义例句", wordCount: 748, version: "2026.07.24.1", url: "./n2607.json" },
-      { order: 9, id: "n2608", name: "N2608", description: "AI、技术、商业与通识阅读进阶词汇，含短语和例句", wordCount: 1361, version: "2026.08.27.1", url: "./n2608.json" },
+      { order: 1, id: "middle_school", name: "初中英语 2000", description: "初中英语核心词汇，含英美音标、核心释义、详细解析、短语、双语例句、辨析与构词记忆", wordCount: 1839, version: "2026.09.23.1", url: "./middle_school_2000.json" },
+      { order: 2, id: "hight_school_2000", name: "高中英语 2000", description: "高中英语、高考核心词汇，不含初中阶段的词汇。增加了AI讲解，更全面解析单词含义。", wordCount: 2239, version: "2026.09.23.1", url: "./hight_school_2000.json" },
+      { order: 3, id: "cet4_1000", name: "CET4 1000", description: "大学英语四级词汇，共 999 词；四级词汇与初中、高中词汇重合度很高，本词书不包含初中、高中词汇，如需完整学习四级词汇，请先学初中、高中词汇。", wordCount: 999, version: "2026.09.23.1", url: "./cet4_1000.json" },
+      { order: 4, id: "cet6_3000", name: "CET6 3000", description: "大学英语六级词汇，不包含四级的词汇，面向已具备四级英语能力的进阶学习者。", wordCount: 3166, version: "2026.09.23.1", url: "./cet6_3000.json" },
+      { order: 5, id: "toefl_4000", name: "TOEFL 4000", description: "面向中高级英语学习者和准备出国留学的学生；已剔除初中、高中、CET4及CET6词书中已有的词汇，实际收录3983词。", wordCount: 3983, version: "2026.09.23.1", url: "./toefl_4000.json" },
+      { order: 6, id: "gre_2000", name: "GRE 2000", description: "GRE进阶词汇；已剔除初中、高中、CET4、CET6及TOEFL词书中已有的词汇，实际收录1902词。", wordCount: 1902, version: "2026.09.23.1", url: "./gre_2000.json" },
+      { order: 7, id: "kaoyan_2", name: "考研英语二", description: "按主题模块排列的考研英语二进阶高频词汇，覆盖宏观经济与市场现象、企业管理与债务、数据分析与研究方法三大主题。", wordCount: 484, version: "2026.09.23.1", url: "./kaoyan_2.json" },
+      { order: 8, id: "n2607", name: "N2607", description: "AI、技术、商业与通识阅读词汇，含短语、词源与多义例句", wordCount: 748, version: "2026.09.23.1", url: "./n2607.json" },
+      { order: 9, id: "n2608", name: "N2608", description: "AI、技术、商业与通识阅读进阶词汇，含短语和例句", wordCount: 1361, version: "2026.09.23.1", url: "./n2608.json" },
       { order: 10, id: "plant1000", name: "Plant 1000", description: "植物主题词汇，涵盖花卉、树木、蔬果与药用植物，含分类、形态、分布、典故、特性及例句", wordCount: 1000, version: "2026.07.25.1", url: "./plant1000.json" }
     ];
 
@@ -1505,22 +1524,80 @@
       return compact ? body : `<details class="info-section" open><summary>词源分析</summary><div class="detail-body">${body}</div></details>`;
     }
 
+    function analysisInlineHTML(value) {
+      const text = String(value);
+      const tokens = /(`[^`\n]+`)|(\[([^\]\n]+)\]\((https?:\/\/[^\s)]+)\))|(\*\*([^*\n]+)\*\*)|(__([^_\n]+)__)|(\*([^*\n]+)\*)|(_([^_\n]+)_)/gi;
+      let html = "", cursor = 0;
+      for (const match of text.matchAll(tokens)) {
+        html += esc(text.slice(cursor, match.index));
+        if (match[1]) html += `<code>${esc(match[1].slice(1, -1))}</code>`;
+        else if (match[2]) html += `<a href="${esc(match[4])}" target="_blank" rel="noopener noreferrer">${esc(match[3])}</a>`;
+        else if (match[5] || match[7]) html += `<strong>${esc(match[6] || match[8])}</strong>`;
+        else html += `<em>${esc(match[10] || match[12])}</em>`;
+        cursor = match.index + match[0].length;
+      }
+      return html + esc(text.slice(cursor));
+    }
+
+    function analysisMarkdownHTML(value) {
+      const lines = String(value).replace(/\r\n?/g, "\n").trim().split("\n");
+      const blocks = [];
+      let paragraph = [], items = [], listType = "", listStart = 1;
+      const flushParagraph = () => {
+        if (paragraph.length) blocks.push(`<p>${paragraph.join("<br>")}</p>`);
+        paragraph = [];
+      };
+      const flushList = () => {
+        if (items.length) blocks.push(`<${listType}${listType === "ol" && listStart !== 1 ? ` start="${listStart}"` : ""}>${items.map(item => `<li>${item}</li>`).join("")}</${listType}>`);
+        items = []; listType = ""; listStart = 1;
+      };
+      for (const line of lines) {
+        if (!line.trim()) { flushParagraph(); flushList(); continue; }
+        const heading = line.match(/^ {0,3}(#{1,6})[ \t]+(.+?)\s*$/);
+        if (heading) {
+          flushParagraph(); flushList();
+          const level = heading[1].length;
+          blocks.push(`<h${level}>${analysisInlineHTML(heading[2])}</h${level}>`);
+          continue;
+        }
+        const list = line.match(/^ {0,3}([-*+]|\d+[.)])[ \t]+(.+)$/);
+        if (list) {
+          flushParagraph();
+          const type = /^\d/.test(list[1]) ? "ol" : "ul";
+          if (listType && listType !== type) flushList();
+          if (!listType) { listType = type; if (type === "ol") listStart = Number.parseInt(list[1], 10); }
+          items.push(analysisInlineHTML(list[2].trim()));
+          continue;
+        }
+        if (listType && /^ {2,}\S/.test(line)) {
+          items[items.length - 1] += `<br>${analysisInlineHTML(line.trim())}`;
+          continue;
+        }
+        flushList();
+        paragraph.push(analysisInlineHTML(line.trim()));
+      }
+      flushParagraph(); flushList();
+      return blocks.join("");
+    }
+
     function analysisHTML(value) {
       const text = String(value || "").trim();
       if (!text) return "";
-      const segments = text.split(/(?=【[^】]+】)/).map(segment => segment.trim()).filter(Boolean);
-      const hasLabels = segments.some(segment => /^【[^】]+】/.test(segment));
-      if (!hasLabels) return `<p class="analysis">${esc(text)}</p>`;
-      const body = segments.map(segment => {
-        const match = segment.match(/^【([^】]+)】\s*([\s\S]*)$/);
-        if (!match) return `<p>${esc(segment)}</p>`;
-        return `<p><strong class="analysis-label">【${esc(match[1])}】</strong>${esc(match[2])}</p>`;
+      const segments = text.split(/(?=【[^】\n]+】)/).map(segment => segment.trim()).filter(Boolean);
+      const hasLabels = segments.some(segment => /^【[^】\n]+】/.test(segment));
+      const firstLabel = segments[0]?.match(/^【([^】\n]+)】[ \t]*([\s\S]*)$/);
+      const summary = firstLabel ? `<strong class="analysis-label">【${esc(firstLabel[1])}】</strong>` : `<span class="sr-only">展开或收起单词解析</span>`;
+      const body = !hasLabels ? analysisMarkdownHTML(text) : segments.map((segment, index) => {
+        const match = segment.match(/^【([^】\n]+)】[ \t]*([\s\S]*)$/);
+        const label = match && index !== 0 ? `<strong class="analysis-label">【${esc(match[1])}】</strong>` : "";
+        return `<section class="analysis-section">${label}${analysisMarkdownHTML(match ? match[2] : segment)}</section>`;
       }).join("");
-      return `<div class="analysis analysis-sectioned">${body}</div>`;
+      return `<details class="info-section analysis-details" open><summary${firstLabel ? "" : ' class="icon-only"'}>${summary}</summary><div class="detail-body"><div class="analysis">${body}</div></div></details>`;
     }
 
     function wordDetailHTML(word) {
-      return `<div class="word-detail"><p class="meaning">${esc(word.meaning)}</p>${analysisHTML(word.analysis)}</div>
+      return `<div class="word-detail"><p class="meaning">${esc(word.meaning)}</p></div>
+        ${analysisHTML(word.analysis)}
         ${phraseSectionHTML(word)}
         <details class="info-section" open><summary>例句 · ${word.examples.length}</summary><div class="detail-body">${word.examples.map(x => `<div class="example"><p>${highlightWord(x.en, word.word)}</p><small>${esc(x.zh)}</small></div>`).join("")}</div></details>
         <details class="info-section" open><summary>近义词</summary><div class="detail-body"><div class="chip-list">${word.synonyms.length ? word.synonyms.map(x => `<span class="chip"><b>${esc(x.word)}</b>${x.note ? ` · ${esc(x.note)}` : ""}</span>`).join("") : "暂无"}</div></div></details>

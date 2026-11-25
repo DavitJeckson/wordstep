@@ -413,12 +413,6 @@
       margin-top: 20px;
       padding: 24px 22px;
     }
-    .lookup-actions {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      margin-top: 20px;
-    }
     .lookup-not-found {
       padding: 40px 20px;
       text-align: center;
@@ -524,6 +518,13 @@
       background: linear-gradient(transparent, rgba(244,245,247,.96) 25%);
     }
     .actions.single { grid-template-columns: 1fr; }
+    .actions.lookup-actions {
+      position: fixed;
+      inset-inline: 0;
+      width: min(calc(100% - 36px), 524px);
+      margin: 0 auto;
+    }
+    #lookupView { padding-bottom: 72px; }
     .actions.learn-actions {
       grid-template-columns: repeat(4, minmax(0, 1fr));
       gap: 8px;
@@ -977,11 +978,13 @@
       body { padding: 18px 0; }
       .app { min-height: calc(100dvh - 36px); border-radius: 24px; overflow: hidden; }
       .bottom-nav { bottom: 18px; border-radius: 0 0 24px 24px; }
+      .actions.lookup-actions { bottom: calc(90px + env(safe-area-inset-bottom)); }
       dialog { margin-bottom: max(18px, calc((100dvh - 760px) / 2)); border-radius: 22px; }
     }
     @media (max-width: 380px) {
       .header { padding-right: 13px; padding-left: 13px; }
       main { padding-right: 13px; padding-left: 13px; }
+      .actions.lookup-actions { width: calc(100% - 26px); }
       .streak span { display: none; }
       .book-switch { padding: 0 5px; }
       .stage-item { padding-inline: 4px; }
@@ -2140,9 +2143,9 @@
         <p class="eyebrow">WORD LOOKUP${source}</p>
         <h1 id="lookupHeading" tabindex="-1">查词</h1>
         ${lookupFormHTML(result.query)}
-        <div class="lookup-actions"><button class="ghost" type="button" id="closeLookupBtn">${state.lookupReturnContext.label}</button></div>
         ${content}
-      </section>`;
+      </section>
+      <div class="actions single lookup-actions"><button class="secondary block" type="button" id="closeLookupBtn">${state.lookupReturnContext.label}</button></div>`;
       main.hidden = true;
       lookupView.hidden = false;
       $("#closeLookupBtn", lookupView).addEventListener("click", closeLookup);

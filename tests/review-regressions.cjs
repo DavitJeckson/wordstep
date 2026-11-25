@@ -12,7 +12,7 @@ const names = ['state', 'BUNDLED_BOOKS', 'normalizeSettings', 'normalizeWords', 
   'upgradeSession', 'sessionCounts', 'highlightWord', 'dbRequest', 'loadBookById', 'withBundledMetadata',
   'saveActivity', 'advanceStage', 'statsQuizIsValid', 'renderStatsQuiz', 'answerStatsQuiz',
   'nextStatsQuizQuestion', 'renderReview', 'playRemotePronunciation', 'stopPronunciationPlayback', 'localDate', 'answerQuiz', 'answerSpelling',
-  'analysisHTML', 'wordDetailHTML', 'reviewDetailHTML', 'BUNDLED_LOOKUP_HEADWORDS', 'bookHeadwords',
+  'analysisHTML', 'wordDetailHTML', 'reviewDetailHTML',
   'searchAllBooks', 'performLookup', 'openLookupFromContext', 'closeLookup', 'navigateToTab', 'switchBook',
   'bindStaticEvents', 'playAudio', 'playTTS', 'renderFlow', 'saveBookWithLookupIndex'];
 
@@ -52,6 +52,7 @@ function app() {
   vm.runInContext(source.replace('    init();', `    globalThis.api = { ${names.join(',')} };`), context);
   const api = context.api;
   const tables = Object.fromEntries(['books', 'sessions', 'progress', 'activity', 'meta', 'quizResults'].map(x => [x, new Map()]));
+  const pausedBookReads = new Map();
   let abortNext = false;
   api.state.db = { transaction(name) {
     const writes = [];
@@ -70,20 +71,30 @@ function app() {
       }
     };
     const tx = { abort() { finished = true; this.onabort?.(); }, objectStore(storeName = name) {
-      const request = (value, write) => {
+      const request = (value, write, hold) => {
         const req = { result: structuredClone(value) };
         if (write) writes.push(write);
         pending++;
-        queueMicrotask(() => {
+        const finishRequest = () => {
           if (finished) return;
           req.onsuccess?.();
           pending--;
           if (!pending) queueMicrotask(finish);
-        });
+        };
+        if (hold) hold.response.promise.then(finishRequest);
+        else queueMicrotask(finishRequest);
         return req;
       };
       return {
-        get: key => { reads.push([storeName, 'get', key]); return request(tables[storeName].get(key)); },
+        get: key => {
+          reads.push([storeName, 'get', key]);
+          const hold = storeName === 'books' && pausedBookReads.get(key);
+          if (hold) {
+            pausedBookReads.delete(key);
+            hold.started.resolve();
+          }
+          return request(tables[storeName].get(key), undefined, hold);
+        },
         getAll: () => { reads.push([storeName, 'getAll']); return request([...tables[storeName].values()]); },
         getAllKeys: () => request([...tables[storeName].keys()]),
         put: value => { const copy = structuredClone(value); return request(value.id || value.key, () => tables[storeName].set(value.id || value.key, copy)); },
@@ -92,33 +103,18 @@ function app() {
     } };
     return tx;
   } };
-  api.state.book = { id: 'test', words: api.normalizeWords([{ id: 'a', word: 'alpha', meaning: '甲' }, { id: 'b', word: 'beta', meaning: '乙' }]) };
+  api.state.book = { id: 'test', name: '测试词书', words: api.normalizeWords([{ id: 'a', word: 'alpha', meaning: '甲' }, { id: 'b', word: 'beta', meaning: '乙' }]) };
+  tables.books.set('test', structuredClone(api.state.book));
+  tables.meta.set('lookup-headwords:test', { key: 'lookup-headwords:test', headwords: ['alpha', 'beta'] });
   api.state.settings = api.normalizeSettings({});
-  return { ...api, context, window, elements, document, tables, timers, audio, reads, failNext() { abortNext = true; } };
-}
-
-if (process.argv.includes('--refresh-lookup-index')) {
-  const a = app();
-  const start = '    // BEGIN GENERATED LOOKUP HEADWORDS';
-  const end = '    // END GENERATED LOOKUP HEADWORDS';
-  const lines = [start, '    const BUNDLED_LOOKUP_HEADWORDS = {'];
-  for (const book of a.BUNDLED_BOOKS) {
-    const raw = JSON.parse(fs.readFileSync(path.join(root, book.url), 'utf8'));
-    const words = a.bookHeadwords(raw.words);
-    lines.push(`      ${JSON.stringify(book.id)}: [`);
-    for (let index = 0; index < words.length; index += 10) {
-      const row = words.slice(index, index + 10).map(word => JSON.stringify(word).replace(/</g, '\\u003c'));
-      lines.push(`        ${row.join(', ')},`);
+  return { ...api, context, window, elements, document, tables, timers, audio, reads,
+    failNext() { abortNext = true; },
+    pauseBookRead(bookId) {
+      const started = deferred(), response = deferred();
+      pausedBookReads.set(bookId, { started, response });
+      return { started: started.promise, release: response.resolve };
     }
-    lines.push('      ],');
-  }
-  lines.push('    };', end);
-  const indexStart = html.indexOf(start);
-  const indexEnd = html.indexOf(end, indexStart);
-  assert.ok(indexStart >= 0 && indexEnd > indexStart, 'Inline lookup index markers are missing');
-  const eol = html.includes('\r\n') ? '\r\n' : '\n';
-  fs.writeFileSync(appFile, html.slice(0, indexStart) + lines.join(eol) + html.slice(indexEnd + end.length));
-  process.exit(0);
+  };
 }
 
 test('settings migrate missing and invalid values to bounded integer quotas', () => {
@@ -147,7 +143,6 @@ test('all bundled books normalize without changing IDs; metadata counts agree wi
     const normalized = a.withBundledMetadata(raw, book);
     assert.equal(normalized.wordCount, book.wordCount, book.id);
     assert.deepEqual(Array.from(normalized.words, w => w.id), raw.words.map(w => w.id));
-    assert.deepEqual(Array.from(a.BUNDLED_LOOKUP_HEADWORDS[book.id]), Array.from(a.bookHeadwords(raw.words)), book.id);
   }
 });
 
@@ -356,30 +351,37 @@ function exerciseSpeech(a) {
   return { spoken, canceled, localUK };
 }
 
-test('cold misses never fetch wordbooks and exact cross-book hits fetch only the matching book', async () => {
+test('only downloaded wordbooks are searched and a new download indexes its actual words', async () => {
   const a = app();
+  const bookId = 'hight_school_2000';
+  const term = 'dynamic-download-only';
+  a.tables.meta.set('custom-book-catalog', { key: 'custom-book-catalog', books: [{ id: 'test', name: '测试词书' }] });
   const paths = [];
   a.context.fetch = async url => {
     paths.push(url);
-    return bundledResponse([{ id: 'original-id', word: 'anticipate', meaning: '预期' }]);
+    return bundledResponse([{ id: 'original-id', word: term, meaning: '动态词条' }]);
   };
   assert.equal((await a.searchAllBooks(' ALPHA ')).bookId, 'test');
-  const miss = await a.searchAllBooks('zz-no-such-word');
+  a.reads.length = 0;
+  const miss = await a.searchAllBooks(term);
   assert.equal(miss.word, undefined);
   assert.deepEqual(Array.from(miss.unavailable), []);
+  assert.ok(miss.notDownloaded.includes('高中英语 2000'));
   assert.deepEqual(paths, []);
-  assert.equal(a.tables.books.size, 0);
+  assert.equal(a.tables.books.size, 1);
   assert.equal(a.reads.some(([store]) => store === 'books'), false);
 
-  const match = await a.searchAllBooks('anticipate');
-  assert.equal(match.bookId, 'hight_school_2000');
+  await a.loadBookById(bookId);
+  const match = await a.searchAllBooks(term);
+  assert.equal(match.bookId, bookId);
   assert.equal(match.word.id, 'original-id');
   assert.deepEqual(paths, ['./hight_school_2000.json']);
-  assert.equal(a.tables.books.size, 1);
-  assert.deepEqual(a.tables.meta.get('lookup-headwords:hight_school_2000').headwords, ['anticipate']);
+  assert.equal(a.tables.books.size, 2);
+  assert.deepEqual(a.tables.meta.get('lookup-headwords:' + bookId).headwords, [term]);
 
   a.reads.length = 0;
-  await a.searchAllBooks('zz-no-such-word');
+  const stillMissing = await a.searchAllBooks('zz-no-such-word');
+  assert.equal(stillMissing.notDownloaded.includes('高中英语 2000'), false);
   assert.deepEqual(paths, ['./hight_school_2000.json']);
   assert.equal(a.reads.some(([store]) => store === 'books'), false);
 });
@@ -413,35 +415,54 @@ test('legacy wordbooks get a small index once and keep offline terms and origina
   assert.equal((await a.searchAllBooks('custom-cache-only')).word, undefined);
 });
 
-test('words added to the active bundled book are reported as unavailable when its old cache is offline', async () => {
+test('a bundled book update replaces its index and a failed update preserves the old pair', async () => {
   const a = app();
   a.context.console = { warn() {} };
   const book = { id: 'hight_school_2000', version: 'old', words: [{ id: 'legacy', word: 'legacy-cache-only' }] };
   a.tables.books.set(book.id, book);
   a.state.book = { ...book, words: a.normalizeWords(book.words) };
 
+  assert.equal((await a.loadBookById(book.id)).words[0].id, 'legacy');
   assert.equal((await a.searchAllBooks('legacy-cache-only')).word.id, 'legacy');
-  assert.deepEqual(Array.from((await a.searchAllBooks('anticipate')).unavailable), ['高中英语 2000']);
-  a.context.fetch = async () => bundledResponse([{ id: 'current', word: 'anticipate' }]);
-  assert.equal((await a.searchAllBooks('anticipate')).word.id, 'current');
+  const updated = [{ id: 'current', word: 'new-version-only' }];
+  a.context.fetch = async () => {
+    a.failNext();
+    return bundledResponse(updated);
+  };
+  assert.equal((await a.loadBookById(book.id)).words[0].id, 'legacy');
+  assert.deepEqual(a.tables.books.get(book.id), book);
+  assert.deepEqual(a.tables.meta.get('lookup-headwords:' + book.id).headwords, ['legacy-cache-only']);
+  assert.equal((await a.searchAllBooks('new-version-only')).word, undefined);
+
+  a.context.fetch = async () => bundledResponse(updated);
+  assert.equal((await a.loadBookById(book.id)).words[0].id, 'current');
+  assert.deepEqual(a.tables.meta.get('lookup-headwords:' + book.id).headwords, ['new-version-only']);
+  assert.equal((await a.searchAllBooks('new-version-only')).word.id, 'current');
+  assert.equal((await a.searchAllBooks('legacy-cache-only')).word, undefined);
+  // A stale in-memory copy, as in another open tab, cannot override IndexedDB.
   assert.equal(a.state.book.words[0].id, 'legacy');
 });
 
-test('lookup distinguishes unavailable details from a genuine miss and offers verified base forms', async () => {
+test('lookup distinguishes unavailable details from a local miss and offers indexed base forms', async () => {
   const a = app();
   const view = a.document.querySelector('#lookupView');
   a.context.console = { warn() {} };
   a.state.book.words = a.normalizeWords([
     { word: 'remain', meaning: '保持' }, { word: 'mouse', meaning: '老鼠' }, { word: 'studied', meaning: '专心的' }
   ]);
+  await a.saveBookWithLookupIndex(a.state.book);
+  await a.saveBookWithLookupIndex({ id: 'hight_school_2000', words: [{ word: 'valid-word' }] });
+  const key = 'lookup-headwords:hight_school_2000';
+  a.tables.meta.set(key, { key, headwords: ['misindexed'] });
 
-  const unavailable = await a.performLookup('anticipate');
+  const unavailable = await a.performLookup('misindexed');
   assert.deepEqual(Array.from(unavailable.unavailable), ['高中英语 2000']);
   assert.match(view.innerHTML, /查词结果不完整/);
-  assert.doesNotMatch(view.innerHTML, /未找到「anticipate」/);
+  assert.doesNotMatch(view.innerHTML, /未找到「misindexed」/);
 
   await a.performLookup('zz-no-such-word');
   assert.match(view.innerHTML, /未找到「zz-no-such-word」/);
+  assert.match(view.innerHTML, /内置词书尚未下载/);
   const base = await a.performLookup('remained');
   assert.equal(base.word.word, 'remain');
   assert.equal(base.baseForm, 'remain');
@@ -457,35 +478,31 @@ test('lookup distinguishes unavailable details from a genuine miss and offers ve
 test('only the latest lookup updates the UI, and close or tab navigation discards pending results', async () => {
   const a = app();
   a.state.session = a.normalizeSession({ id: 'today', newIds: ['a'] });
-  const pendingRequest = deferred();
-  const requested = deferred();
-  a.context.fetch = url => { requested.resolve(url); return pendingRequest.promise; };
+  const bookId = 'hight_school_2000';
+  await a.saveBookWithLookupIndex({ id: bookId, words: [{ word: 'anticipate' }, { word: 'zucchini' }, { word: 'resilient' }] });
 
+  const pendingRequest = a.pauseBookRead(bookId);
   const first = a.performLookup('anticipate');
-  assert.equal(await requested.promise, './hight_school_2000.json');
+  await pendingRequest.started;
   await a.performLookup('alpha');
-  pendingRequest.resolve(bundledResponse([{ word: 'anticipate' }]));
+  pendingRequest.release();
   await first;
   assert.equal(a.state.lookupWord.word.word, 'alpha');
 
-  const closeRequest = deferred();
-  const closeRequested = deferred();
-  a.context.fetch = () => { closeRequested.resolve(); return closeRequest.promise; };
+  const closeRequest = a.pauseBookRead(bookId);
   const pendingClose = a.performLookup('zucchini');
-  await closeRequested.promise;
+  await closeRequest.started;
   a.closeLookup();
-  closeRequest.resolve(bundledResponse([{ word: 'zucchini' }]));
+  closeRequest.release();
   await pendingClose;
   assert.equal(a.state.lookupWord, null);
   assert.equal(a.document.querySelector('#lookupView').hidden, true);
 
-  const navRequest = deferred();
-  const navRequested = deferred();
-  a.context.fetch = () => { navRequested.resolve(); return navRequest.promise; };
+  const navRequest = a.pauseBookRead(bookId);
   const pendingNav = a.performLookup('resilient');
-  await navRequested.promise;
+  await navRequest.started;
   await a.navigateToTab('plan');
-  navRequest.resolve(bundledResponse([{ word: 'resilient' }]));
+  navRequest.release();
   await pendingNav;
   assert.equal(a.state.lookupWord, null);
   assert.match(a.document.querySelector('#studyView').innerHTML, /学习计划/);
@@ -531,16 +548,16 @@ test('changing the active wordbook exits lookup and invalidates an in-flight sea
   a.state.session = a.normalizeSession({ id: 'today', newIds: ['a'] });
   const target = { id: 'imported', name: '新词书', words: [{ id: 'c', word: 'charlie' }] };
   await a.saveBookWithLookupIndex(target);
+  const bookId = 'hight_school_2000';
+  await a.saveBookWithLookupIndex({ id: bookId, words: [{ word: 'anticipate' }] });
   a.state.books = [target];
   await a.performLookup('alpha');
 
-  const response = deferred();
-  const requested = deferred();
-  a.context.fetch = () => { requested.resolve(); return response.promise; };
+  const response = a.pauseBookRead(bookId);
   const pending = a.performLookup('anticipate');
-  await requested.promise;
+  await response.started;
   await a.switchBook(target.id);
-  response.resolve(bundledResponse([{ word: 'anticipate' }]));
+  response.release();
   await pending;
   assert.equal(a.state.book.id, target.id);
   assert.equal(a.state.settings.activeBookId, target.id);

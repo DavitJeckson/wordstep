@@ -207,26 +207,17 @@
     }
 
     .card { min-width: 0; }
-    .flow-list { padding-inline-start: var(--section-indent); border-inline-start: 1px solid var(--guide); }
-    .flow-row {
-      display: grid;
-      grid-template-columns: 20px minmax(0, 1fr) auto;
-      align-items: center;
-      gap: 10px;
-      padding: 13px 0;
-      border-bottom: 1px solid var(--line);
-    }
-    .flow-row:last-of-type { border-bottom: 0; }
-    .flow-icon {
-      display: grid;
-      place-items: center;
-      color: var(--accent);
-      font-size: 15px;
-      font-weight: 800;
-    }
-    .flow-row h3 { margin: 0 0 2px; font-size: 15px; }
-    .flow-row p { margin: 0; color: var(--muted); font-size: 12px; }
-    .flow-count { font-size: 22px; font-weight: 800; }
+    .word-flash { margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--line); }
+    .word-flash-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 4px 12px; margin-bottom: 8px; }
+    .word-flash-head h2 { margin: 0; }
+    .word-flash-head .sub { font-size: 12px; }
+    .word-flash-track { display: grid; grid-template-columns: 44px minmax(0, 1fr) 44px; align-items: center; gap: 4px; touch-action: pan-y pinch-zoom; }
+    .word-flash-entry { display: grid; align-content: center; gap: 4px; min-height: 104px; padding: 12px var(--section-indent); border-inline-start: 1px solid var(--guide); white-space: pre-line; overflow-wrap: anywhere; }
+    .word-flash-word { justify-self: start; max-width: 100%; padding: 0; border: 0; background: transparent; color: var(--accent-dark); font-size: clamp(24px, 6vw, 34px); font-weight: 750; line-height: 1.2; text-align: start; text-decoration: underline dotted var(--guide); text-underline-offset: 4px; overflow-wrap: anywhere; cursor: pointer; }
+    .word-flash-word:hover { text-decoration-color: var(--accent); }
+    .word-flash-entry .phonetic-audio { min-width: 44px; }
+    .word-flash-arrow { display: grid; place-items: center; width: 44px; height: 44px; padding: 0; border: 0; border-radius: 10px; background: transparent; color: var(--accent); font-size: 30px; cursor: pointer; }
+    .word-flash-arrow:hover:not(:disabled) { background: var(--accent-soft); }
 
     .primary, .secondary, .danger, .ghost {
       display: inline-flex;
@@ -1085,7 +1076,7 @@
       { order: 3, id: "cet4_1000", name: "CET4 1000", description: "大学英语四级词汇，共 999 词；四级词汇与初中、高中词汇重合度很高，本词书不包含初中、高中词汇，如需完整学习四级词汇，请先学初中、高中词汇。", wordCount: 999, version: "2026.11.26.1", url: "./cet4_1000.json" },
       { order: 4, id: "cet6_3000", name: "CET6 3000", description: "大学英语六级词汇，不包含四级的词汇，面向已具备四级英语能力的进阶学习者。", wordCount: 3166, version: "2026.11.26.1", url: "./cet6_3000.json" },
       { order: 5, id: "toefl_4000", name: "TOEFL 4000", description: "面向中高级英语学习者和准备出国留学的学生；已剔除初中、高中、CET4及CET6词书中已有的词汇，实际收录3983词。", wordCount: 3983, version: "2026.11.26.1", url: "./toefl_4000.json" },
-      { order: 6, id: "gre_2000", name: "GRE 2000", description: "GRE进阶词汇；已剔除初中、高中、CET4、CET6及TOEFL词书中已有的词汇，实际收录1902词。", wordCount: 1902, version: "2026.09.23.1", url: "./gre_2000.json" },
+      { order: 6, id: "gre_2000", name: "GRE 2000", description: "GRE进阶词汇；已剔除初中、高中、CET4、CET6及TOEFL词书中已有的词汇，实际收录1902词。", wordCount: 1902, version: "2026.11.26.1", url: "./gre_2000.json" },
       { order: 7, id: "kaoyan_2", name: "考研英语二", description: "按主题模块排列的考研英语二进阶高频词汇，覆盖宏观经济与市场现象、企业管理与债务、数据分析与研究方法三大主题。", wordCount: 484, version: "2026.09.23.1", url: "./kaoyan_2.json" },
       { order: 8, id: "n2607", name: "N2607", description: "AI、技术、商业与通识阅读词汇，含短语、词源与多义例句", wordCount: 748, version: "2026.09.23.1", url: "./n2607.json" },
       { order: 9, id: "n2608", name: "N2608", description: "AI、技术、商业与通识阅读进阶词汇，含短语和例句", wordCount: 1361, version: "2026.09.23.1", url: "./n2608.json" },
@@ -1168,14 +1159,17 @@
       const accent = type === 1 ? "英" : "美";
       return `<button class="audio-control phonetic-audio" type="button" data-pronunciation-word="${esc(word.id)}" data-pronunciation-type="${type}" aria-label="播放 ${esc(word.word)} 的${accent}音" aria-pressed="false">${showAccent ? accent : ""}${audioIconHTML()}</button>`;
     }
-    function phoneticWithAudioHTML(word, compact = false) {
+    function phoneticWithAudioHTML(word, compact = false, showBothAccents = false) {
       const raw = String(word?.phonetic || "").trim();
-      if (!raw) return "";
+      if (!raw && !showBothAccents) return "";
       const prepared = raw.replace(/[ \t]+(?=(?:英|美)(?:音|式)?\s*[\/\[])/g, "\n");
       const lines = prepared.split(/\r?\n/).map(line => line.trim()).filter(Boolean);
+      const missingAccents = new Set(showBothAccents ? [1, 2] : []);
       const body = lines.map(line => {
         const isBritish = /^(?:英|英音|英式|UK|British)(?:\s|\/|\[|:|：|$)/i.test(line);
         const isAmerican = /^(?:美|美音|美式|US|American)(?:\s|\/|\[|:|：|$)/i.test(line);
+        if (!isAmerican) missingAccents.delete(1);
+        if (!isBritish) missingAccents.delete(2);
         const buttons = isBritish
           ? pronunciationButtonHTML(word, 1)
           : isAmerican
@@ -1183,7 +1177,8 @@
             : `<span class="phonetic-audio-group">${pronunciationButtonHTML(word, 1, true)}${pronunciationButtonHTML(word, 2, true)}</span>`;
         return `<div class="phonetic-line"><span class="phonetic-text">${esc(line)}</span>${buttons}</div>`;
       }).join("");
-      return `<div class="phonetic-list ${compact ? "compact" : ""}">${body}</div>`;
+      const extraButtons = [...missingAccents].map(type => pronunciationButtonHTML(word, type, true)).join("");
+      return `<div class="phonetic-list ${compact ? "compact" : ""}">${body}${extraButtons ? `<div class="phonetic-line">${extraButtons}</div>` : ""}</div>`;
     }
     function hasRecordedAudio(word) {
       return Boolean(String(word?.audioBase64 || word?.audio || "").trim());
@@ -1635,22 +1630,159 @@
       const c = sessionCounts();
       if (state.session.completed) return renderSummary();
       const action = c.done ? "继续今日任务" : "开始今日任务";
-      const sourceDate = state.session.reviewSourceDate;
-      const reviewTitle = sourceDate === localDate(-1) ? "复习昨天学过的词" : sourceDate ? "复习最近一次学过的词" : "复习最近学过的词";
-      const reviewCopy = c.review && sourceDate ? `${dateLabel(sourceDate)} 学过的单词` : "还没有可复习的历史单词";
       setStudyView(`<section class="screen">
+        ${lookupFormHTML()}
         <div class="today-head"><div><h1>今日学习</h1><p class="sub">${dateLabel(localDate())}</p></div><div class="today-number"><strong>${c.done}</strong><span>/ ${c.total}</span></div></div>
         <div class="progress-track" aria-label="今日进度"><div class="progress-fill" style="width:${c.percent}%"></div></div>
         ${railHTML()}
-        ${lookupFormHTML()}
-        <div class="flow-list">
-          <div class="flow-row"><div class="flow-icon">↺</div><div><h3>${reviewTitle}</h3><p>${reviewCopy}</p></div><div class="flow-count">${c.review}</div></div>
-          <div class="flow-row"><div class="flow-icon">Aa</div><div><h3>学习今天的新词</h3><p>详细解析、常用短语、例句、辨析与词源</p></div><div class="flow-count">${c.learn}</div></div>
-          <div class="flow-row"><div class="flow-icon">✓</div><div><h3>完成当天测验</h3><p>释义选择 + 中文提示拼写</p></div><div class="flow-count">${c.quiz}</div></div>
-        </div>
         <button class="primary block start-button" type="button" id="startFlow">${action} · ${stageLabel(state.session.stage)}</button>
+        ${wordFlashHTML()}
       </section>`);
       $("#startFlow").addEventListener("click", () => { state.flowOpen = true; state.revealed = false; render(); });
+      bindWordFlash();
+    }
+
+    function wordFlashHTML() {
+      return `<section class="word-flash" aria-labelledby="wordFlashHeading">
+        <div class="word-flash-head"><h2 id="wordFlashHeading">单词快闪</h2><span class="sub">左滑下一词 · 右滑上一词</span></div>
+        <div class="word-flash-track" id="wordFlashTrack">
+          <button class="word-flash-arrow" type="button" id="previousFlashWord" aria-label="上一词" disabled><span aria-hidden="true">‹</span></button>
+          <div class="word-flash-entry" id="wordFlashEntry" role="status" aria-atomic="true"><span class="sub">正在抽词…</span></div>
+          <button class="word-flash-arrow" type="button" id="nextFlashWord" aria-label="下一词" disabled><span aria-hidden="true">›</span></button>
+        </div>
+      </section>`;
+    }
+
+    async function wordFlashPools(book) {
+      const [progress, keys] = await Promise.all([getAll("progress"), getAllKeys("books")]);
+      const progressByWord = new Map(progress.filter(item => item.bookId === book.id).map(item => [item.wordId, item]));
+      const outside = [], unlearned = [], learned = [], consolidate = [];
+      for (const word of book.words) {
+        const item = progressByWord.get(word.id);
+        if (item?.skippedAt) continue;
+        const pool = consolidationTypes(item).length ? consolidate : item?.learnedDate && !item.relearnQueuedAt ? learned : unlearned;
+        pool.push({ word, bookName: book.name });
+      }
+      const localTerms = new Set(bookHeadwords(book.words));
+      const otherKeys = keys.filter(id => id !== book.id && !REMOVED_BUILTIN_BOOK_IDS.includes(id));
+      const catalog = otherKeys.length ? await getBookCatalog(keys) : [];
+      const otherBooks = catalog.filter(item => otherKeys.includes(item.id));
+      const indexes = await Promise.allSettled(otherBooks.map(item => cachedLookupHeadwords(item.id)));
+      indexes.forEach((index, i) => {
+        if (index.status !== "fulfilled") return;
+        const { id: bookId, name: bookName } = otherBooks[i];
+        for (const term of index.value) {
+          if (localTerms.has(term)) continue;
+          localTerms.add(term);
+          outside.push({ term, bookId, bookName });
+        }
+      });
+      return [{ items: outside, weight: 30 }, { items: unlearned, weight: 20 },
+        { items: learned, weight: 30 }, { items: consolidate, weight: 20 }].filter(pool => pool.items.length);
+    }
+
+    function pickFlashWord(pools, previous = null) {
+      let roll = Math.random() * pools.reduce((sum, pool) => sum + pool.weight, 0);
+      for (const { items, weight } of pools) {
+        if (roll < weight) {
+          const skip = items.length > 1 ? items.indexOf(previous) : -1;
+          const index = Math.floor(Math.random() * (items.length - Number(skip >= 0)));
+          return items[skip >= 0 && index >= skip ? index + 1 : index];
+        }
+        roll -= weight;
+      }
+      return null;
+    }
+
+    function bindWordFlash() {
+      const track = $("#wordFlashTrack");
+      const entry = $("#wordFlashEntry");
+      const prevButton = $("#previousFlashWord");
+      const nextButton = $("#nextFlashWord");
+      const book = state.book;
+      const history = [];
+      let position = -1, pools, pending = false, gesture, ignoreSwipeClick = false;
+      const isCurrent = () => track.isConnected && state.book === book && state.tab === "today" && !state.lookupWord;
+      const show = () => {
+        const { word, bookName } = history[position];
+        stopScreenPlayback();
+        entry.innerHTML = `<button class="word-flash-word" type="button" lang="en" aria-label="查询 ${esc(word.word)}">${esc(word.word)}</button>
+          ${phoneticWithAudioHTML(word, true, true)}
+          ${word.meaning ? `<span>${esc(word.meaning)}</span>` : ""}
+          <span class="sub">${esc(bookName)}</span>`;
+      };
+      const move = async direction => {
+        if (!isCurrent() || pending || position + direction < 0) return;
+        if (position + direction < history.length) {
+          position += direction;
+          show();
+          prevButton.disabled = position === 0;
+          return;
+        }
+        pending = true;
+        try {
+          pools ??= await wordFlashPools(book);
+          if (!isCurrent()) return;
+          const pick = pickFlashWord(pools, history[position]?.pick);
+          if (!pick) {
+            entry.textContent = "暂无可抽取的单词";
+            return;
+          }
+          const word = pick.word ?? await loadLookupWord(pick.bookId, pick.term).catch(() => ({ word: pick.term }));
+          if (!isCurrent()) return;
+          history.push({ pick, word, bookName: pick.bookName });
+          position += 1;
+          show();
+        } catch (error) {
+          console.warn("无法读取单词快闪", error);
+          if (isCurrent()) entry.textContent = "暂时无法抽词，请重试";
+        } finally {
+          pending = false;
+          if (isCurrent()) {
+            prevButton.disabled = position <= 0;
+            nextButton.disabled = pools?.length === 0;
+          }
+        }
+      };
+      prevButton.addEventListener("click", () => move(-1));
+      nextButton.addEventListener("click", () => move(1));
+      entry.addEventListener("click", event => {
+        const current = history[position];
+        if (!isCurrent() || !current) return;
+        const audioButton = event.target.closest("[data-pronunciation-type]");
+        if (audioButton) {
+          event.stopPropagation();
+          return playRemotePronunciation(current.word, Number(audioButton.dataset.pronunciationType), audioButton);
+        }
+        const wordButton = event.target.closest(".word-flash-word");
+        if (!wordButton) return;
+        const { word, pick, bookName } = current;
+        const match = word.id != null ? { word, bookId: pick.bookId ?? book.id, bookName } : null;
+        return performLookup(word.word, wordButton, null, match);
+      });
+      track.addEventListener("click", event => {
+        if (!ignoreSwipeClick || !event.detail) return;
+        event.stopPropagation();
+        ignoreSwipeClick = false;
+      }, true);
+      track.addEventListener("pointerdown", event => {
+        ignoreSwipeClick = false;
+        if (event.pointerType !== "touch" || !event.isPrimary || event.target.closest(".word-flash-arrow")) return;
+        gesture = { id: event.pointerId, x: event.clientX, y: event.clientY };
+        if (!event.target.closest("button")) track.setPointerCapture(event.pointerId);
+      });
+      track.addEventListener("pointerup", event => {
+        if (gesture?.id !== event.pointerId) return;
+        const dx = event.clientX - gesture.x, dy = event.clientY - gesture.y;
+        gesture = null;
+        if (Math.abs(dx) < 36 || Math.abs(dx) <= Math.abs(dy) * 1.25) return;
+        ignoreSwipeClick = true;
+        return move(dx < 0 ? 1 : -1);
+      });
+      track.addEventListener("lostpointercapture", event => {
+        if (gesture?.id === event.pointerId) gesture = null;
+      });
+      return move(1);
     }
 
     function reviewStageLabel() {
@@ -2022,7 +2154,7 @@
       main.hidden = false;
     }
 
-    async function performLookup(query, opener, status) {
+    async function performLookup(query, opener, status, match = null) {
       query = String(query ?? "").trim();
       if (!query) return;
       cancelPendingLookup();
@@ -2037,7 +2169,7 @@
       lookupPendingStatus.textContent = "正在查词…";
       let result;
       try {
-        result = await searchAllBooks(query, isCurrent);
+        result = match ? { query, ...match } : await searchAllBooks(query, isCurrent);
       } catch (error) {
         if (!isCurrent()) return;
         console.warn("查词失败", error);
@@ -2530,8 +2662,10 @@
           <button class="primary block" type="button" id="viewStats">查看学习统计</button>
         </div>
         ${lookupFormHTML()}
+        ${wordFlashHTML()}
       </section>`);
       $("#viewStats").addEventListener("click", () => navigateToTab("stats"));
+      bindWordFlash();
     }
 
     function reviewDetailHTML(word, enableLookup = false) {

@@ -711,3 +711,30 @@ test('stale recorded audio failures cannot interrupt a newer sentence reading', 
   assert.equal(a.state.ttsPlayback.utterance.text, 'A sentence');
   assert.equal(sentenceButton.attributes['aria-pressed'], 'true');
 });
+
+test('daily complete places lookup above compact summary and keeps word flash accessible', async () => {
+  const a = app();
+  a.state.session = a.normalizeSession({
+    id: 'today',
+    bookId: 'test',
+    date: a.localDate(),
+    stage: 'complete',
+    completed: true,
+    reviewDone: ['a'],
+    learnDone: ['a', 'b'],
+    quizCorrect: 3,
+    quizWrong: 1
+  });
+  await a.navigateToTab('today');
+  const html = a.document.querySelector('#studyView').innerHTML;
+  const lookupPos = html.indexOf('data-lookup-form');
+  const completePos = html.indexOf('DAILY COMPLETE');
+  const flashPos = html.indexOf('wordFlashHeading');
+  assert.ok(lookupPos >= 0 && completePos > lookupPos && flashPos > completePos);
+  assert.match(html, /class="daily-summary"/);
+  assert.match(html, /<b>1<\/b><small>已复习<\/small>/);
+  assert.match(html, /<b>2<\/b><small>新学词<\/small>/);
+  assert.match(html, /<b>75%<\/b><small>综合正确率<\/small>/);
+  await a.document.querySelector('#viewStats').listeners.click();
+  assert.equal(a.state.tab, 'stats');
+});

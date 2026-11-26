@@ -208,16 +208,18 @@
 
     .card { min-width: 0; }
     .word-flash { margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--line); }
-    .word-flash-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 4px 12px; margin-bottom: 8px; }
+    .word-flash-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 4px 8px; margin-bottom: 4px; }
     .word-flash-head h2 { margin: 0; }
-    .word-flash-head .sub { font-size: 12px; }
-    .word-flash-track { display: grid; grid-template-columns: 44px minmax(0, 1fr) 44px; align-items: center; gap: 4px; touch-action: pan-y pinch-zoom; }
-    .word-flash-entry { display: grid; align-content: center; gap: 4px; min-height: 104px; padding: 12px var(--section-indent); border-inline-start: 1px solid var(--guide); white-space: pre-line; overflow-wrap: anywhere; }
+    .word-flash-controls { display: flex; gap: 4px; margin-inline-start: auto; }
+    .word-flash-controls button { min-height: 44px; padding: 0 8px; border: 0; border-radius: 8px; background: transparent; color: var(--accent); font-size: 13px; font-weight: 700; cursor: pointer; }
+    .word-flash-controls button:hover:not(:disabled) { background: var(--accent-soft); }
+    .word-flash-track { touch-action: pan-y pinch-zoom; }
+    .word-flash-entry { display: grid; align-content: center; gap: 4px; min-height: 104px; padding: 4px 0 12px; white-space: pre-line; overflow-wrap: anywhere; }
     .word-flash-word { justify-self: start; max-width: 100%; padding: 0; border: 0; background: transparent; color: var(--accent-dark); font-size: clamp(24px, 6vw, 34px); font-weight: 750; line-height: 1.2; text-align: start; text-decoration: underline dotted var(--guide); text-underline-offset: 4px; overflow-wrap: anywhere; cursor: pointer; }
     .word-flash-word:hover { text-decoration-color: var(--accent); }
+    .word-flash-entry .phonetic-list { display: flex; align-items: center; gap: 8px; }
+    .word-flash-entry .phonetic-line { min-width: 0; flex-wrap: nowrap; }
     .word-flash-entry .phonetic-audio { min-width: 44px; }
-    .word-flash-arrow { display: grid; place-items: center; width: 44px; height: 44px; padding: 0; border: 0; border-radius: 10px; background: transparent; color: var(--accent); font-size: 30px; cursor: pointer; }
-    .word-flash-arrow:hover:not(:disabled) { background: var(--accent-soft); }
 
     .primary, .secondary, .danger, .ghost {
       display: inline-flex;
@@ -1644,11 +1646,15 @@
 
     function wordFlashHTML() {
       return `<section class="word-flash" aria-labelledby="wordFlashHeading">
-        <div class="word-flash-head"><h2 id="wordFlashHeading">单词快闪</h2><span class="sub">左滑下一词 · 右滑上一词</span></div>
+        <div class="word-flash-head">
+          <h2 id="wordFlashHeading">单词快闪</h2>
+          <div class="word-flash-controls">
+            <button type="button" id="previousFlashWord" disabled>上一词</button>
+            <button type="button" id="nextFlashWord" disabled>下一词</button>
+          </div>
+        </div>
         <div class="word-flash-track" id="wordFlashTrack">
-          <button class="word-flash-arrow" type="button" id="previousFlashWord" aria-label="上一词" disabled><span aria-hidden="true">‹</span></button>
           <div class="word-flash-entry" id="wordFlashEntry" role="status" aria-atomic="true"><span class="sub">正在抽词…</span></div>
-          <button class="word-flash-arrow" type="button" id="nextFlashWord" aria-label="下一词" disabled><span aria-hidden="true">›</span></button>
         </div>
       </section>`;
     }
@@ -1767,7 +1773,7 @@
       }, true);
       track.addEventListener("pointerdown", event => {
         ignoreSwipeClick = false;
-        if (event.pointerType !== "touch" || !event.isPrimary || event.target.closest(".word-flash-arrow")) return;
+        if (event.pointerType !== "touch" || !event.isPrimary) return;
         gesture = { id: event.pointerId, x: event.clientX, y: event.clientY };
         if (!event.target.closest("button")) track.setPointerCapture(event.pointerId);
       });

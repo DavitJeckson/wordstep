@@ -31,8 +31,10 @@
       --page-gutter: 18px;
       --main-bottom-padding: calc(92px + env(safe-area-inset-bottom));
       --section-indent: 11px;
+      --section-scroll-offset: max(12px, env(safe-area-inset-top));
+      --nav-height: calc(66px + env(safe-area-inset-bottom));
       --nav-offset: 0px;
-      --actions-bottom: calc(72px + env(safe-area-inset-bottom) + var(--nav-offset));
+      --actions-bottom: calc(var(--nav-height) + var(--nav-offset));
       font-family: Inter, "SF Pro Text", "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
       color-scheme: light;
     }
@@ -248,7 +250,7 @@
     .start-button { margin-top: 17px; }
     button:disabled { cursor: default; opacity: .55; transform: none !important; }
 
-    .study-card, .choice-question { scroll-margin-top: max(12px, env(safe-area-inset-top)); }
+    .study-card, .choice-question { scroll-margin-top: var(--section-scroll-offset); }
     .study-top {
       padding: 8px 0 10px;
     }
@@ -274,13 +276,14 @@
     .phonetic-text { min-width: 0; overflow-wrap: anywhere; }
     .phonetic-audio-group { display: inline-flex; align-items: center; gap: 2px; }
     .audio-control {
+      position: relative;
       display: inline-flex;
       flex: none;
       align-items: center;
       justify-content: center;
       gap: 3px;
-      min-width: 34px;
-      min-height: 34px;
+      min-width: 32px;
+      min-height: 32px;
       padding: 0 4px;
       border: 0;
       border-radius: 7px;
@@ -476,6 +479,8 @@
     .bilingual-copy { min-width: 0; padding-block: 5px; overflow-wrap: anywhere; }
     .bilingual-copy p { margin: 0 0 2px; color: var(--accent); font-size: 15px; line-height: 1.55; }
     .bilingual-copy small { display: block; color: var(--muted); line-height: 1.5; }
+    .word-highlight { color: var(--accent); }
+    .bilingual-copy .word-highlight { color: var(--accent-dark); }
     .phrase-item p { font-weight: 650; }
     .tts-btn { align-items: flex-start; padding-top: 8px; }
     .etymology-card { color: var(--ink); font-size: 14px; line-height: 1.7; overflow-wrap: anywhere; }
@@ -521,9 +526,9 @@
     .familiar-button { border-color: #9ed8c7; background: var(--green-soft); color: #0e654e; }
     .familiar-button:hover { border-color: var(--green); background: #d9f2e9; }
 
-    .choice-question {
-      min-height: calc(100vh - var(--main-bottom-padding));
-      min-height: calc(100dvh - var(--main-bottom-padding));
+    .choice-question.with-scroll-space {
+      min-height: calc(100vh - var(--main-bottom-padding) - var(--section-scroll-offset) - var(--nav-offset));
+      min-height: calc(100dvh - var(--main-bottom-padding) - var(--section-scroll-offset) - var(--nav-offset));
     }
     .quiz-title { margin-bottom: 16px; text-align: center; }
     .quiz-title .word { font-size: clamp(38px, 12vw, 52px); }
@@ -543,10 +548,11 @@
       cursor: pointer;
     }
     .option:hover { background: var(--accent-soft); }
-    .option.unknown-option { border-style: dashed; background: var(--surface-2); color: var(--muted); font-weight: 750; text-align: center; }
+    .option.unknown-option { border: 1px dashed var(--line); border-radius: 12px; background: var(--surface-2); color: var(--muted); font-weight: 750; text-align: center; }
     .option.unknown-option:hover { border-color: #aeb2bf; background: #f0f1f4; color: #444a59; }
-    .option.correct { border-color: var(--green); background: var(--green-soft); color: #0e654e; }
-    .option.wrong { border-color: var(--red); background: var(--red-soft); color: #a7273b; }
+    .option.correct, .option.wrong { border-radius: 10px; }
+    .option.correct { border-color: var(--green); background: var(--green-soft); color: #0e654e; box-shadow: inset 3px 0 var(--green); }
+    .option.wrong { border-color: var(--red); background: var(--red-soft); color: #a7273b; box-shadow: inset 3px 0 var(--red); }
     .answer-note {
       margin-top: 12px;
       padding: 12px 14px;
@@ -835,7 +841,7 @@
       display: grid;
       grid-template-columns: repeat(4, 1fr);
       width: min(100%, 560px);
-      min-height: calc(66px + env(safe-area-inset-bottom));
+      height: var(--nav-height);
       margin: 0 auto;
       padding: 7px 12px env(safe-area-inset-bottom);
       border-top: 1px solid var(--line);
@@ -942,10 +948,32 @@
       body { padding: 18px 0; }
       .app { min-height: calc(100dvh - 36px); border-radius: 24px; }
       .bottom-nav { border-radius: 0 0 24px 24px; }
+      .bottom-nav::after {
+        content: "";
+        position: absolute;
+        inset: 100% 0 auto;
+        height: var(--nav-offset);
+        background: var(--bg);
+        pointer-events: none;
+      }
       dialog { margin-bottom: max(18px, calc((100dvh - 760px) / 2)); border-radius: 22px; }
     }
     @media (pointer: coarse) {
-      .audio-control { min-width: 44px; min-height: 44px; }
+      .audio-control::after {
+        content: "";
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: max(100%, 44px);
+        height: 44px;
+        transform: translate(-50%, -50%);
+      }
+      /* Keep adjacent accent rows' touch areas separate. */
+      .phonetic-audio::after { height: 100%; }
+      .phonetic-audio-group { gap: 6px; }
+      /* Expand into the left gutter without covering quick-lookup words. */
+      .tts-btn::after { inset: 0 0 auto auto; transform: none; }
+      .example, .phrase-item { min-height: 44px; }
     }
     @media (max-width: 380px) {
       :root { --page-gutter: 14px; --section-indent: 9px; }
@@ -1817,7 +1845,7 @@
         const before = Array.from(text.slice(0, start)).pop();
         const after = Array.from(text.slice(end))[0];
         if (isWordPart(before) || isWordPart(after)) continue;
-        result += renderText(text.slice(cursor, start)) + `<strong style="color:var(--accent)">${esc(match[0])}</strong>`;
+        result += renderText(text.slice(cursor, start)) + `<strong class="word-highlight">${esc(match[0])}</strong>`;
         cursor = end;
       }
       return result + renderText(text.slice(cursor));
@@ -2226,7 +2254,6 @@
       await saveActivity(s, false);
       state.revealed = false;
       await advanceStage();
-      if (s.stage === "learn") scrollSectionToTop($(".study-card", main));
       toast(`“${word.word}”已标记为很熟悉，今日不再学习和测验`);
     }
 
@@ -2236,8 +2263,6 @@
       cancelPendingLookup();
       stopScreenPlayback();
       const s = state.session;
-      const shouldScrollToNextWord = (s.stage === "learn" && known)
-        || (s.stage === "review" && s.reviewIndex + 1 >= s.reviewIds.length && s.newIds.length > 0);
       const key = `${state.book.id}:${word.id}`;
       const progress = await get("progress", key) || { key, bookId: state.book.id, wordId: word.id, reviewCount: 0, exposures: 0, correct: 0, wrong: 0 };
       progress.lastSeen = localDate();
@@ -2267,7 +2292,6 @@
       if (s.stage === "learn") await saveActivity(s, false);
       state.revealed = false;
       await advanceStage();
-      if (shouldScrollToNextWord) scrollSectionToTop($(".study-card", main));
     }
 
     async function advanceStage() {
@@ -2300,9 +2324,18 @@
         await refreshHeader();
       }
       await put("sessions", s);
+      if (state.session !== s) return;
       state.quizAnswered = false;
       state.selectedAnswer = null;
       render();
+      if (!state.flowOpen || state.tab !== "today") return;
+      if (s.stage === "learn") {
+        scrollSectionToTop($(".study-card", main));
+      } else if (s.stage === "quiz" && s.quizMode === "choice") {
+        const question = $("#choiceQuestion", main);
+        question?.classList.add("with-scroll-space");
+        scrollSectionToTop(question);
+      }
     }
 
     function getQuizOptions(word) {
@@ -2324,6 +2357,7 @@
       const s = state.session;
       const options = getQuizOptions(word);
       const answered = state.quizAnswered;
+      const scrollSpace = $("#choiceQuestion", main)?.classList.contains("with-scroll-space") ? " with-scroll-space" : "";
       announce(answered ? (state.selectedAnswer === word.meaning ? "回答正确" : "回答错误，请查看正确答案") : `释义选择，第 ${s.quizIndex + 1} 题，共 ${s.quizQueue.length} 题`);
       const isCorrect = state.selectedAnswer !== null && state.selectedAnswer === word.meaning;
       const c = sessionCounts();
@@ -2331,7 +2365,7 @@
         <div class="today-head"><div><p class="eyebrow">QUIZ · CHOICE</p><h2>释义选择 <span class="sub">${s.quizIndex + 1} / ${s.quizQueue.length}</span></h2></div><div class="completion">${s.quizIndex >= s.newIds.length ? "释义错题加练" : `今日 ${c.percent}%`}</div></div>
         <div class="progress-track"><div class="progress-fill" style="width:${c.percent}%"></div></div>
         ${railHTML()}
-        <div class="choice-question" id="choiceQuestion">
+        <div class="choice-question${scrollSpace}" id="choiceQuestion">
           <div class="quiz-title"><span class="quiz-kind">第一轮 · 认词</span><h1 class="word">${esc(word.word)}</h1><p>请选择最准确的中文含义</p></div>
           <div class="options">${options.map(option => {
             let cls = "";
@@ -2469,14 +2503,10 @@
     }
 
     async function nextQuiz() {
-      const session = state.session;
-      session.quizIndex++;
+      state.session.quizIndex++;
       state.quizAnswered = false;
       state.selectedAnswer = null;
       await advanceStage();
-      if (state.session === session && state.flowOpen && state.tab === "today") {
-        scrollSectionToTop($("#choiceQuestion", main));
-      }
     }
 
     async function saveActivity(s, completed = true) {

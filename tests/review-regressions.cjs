@@ -14,7 +14,7 @@ const names = ['state', 'BUNDLED_BOOKS', 'normalizeSettings', 'normalizeWords', 
   'nextStatsQuizQuestion', 'renderReview', 'playRemotePronunciation', 'stopPronunciationPlayback', 'localDate', 'answerQuiz', 'answerSpelling',
   'analysisHTML', 'wordDetailHTML', 'reviewDetailHTML',
   'searchAllBooks', 'performLookup', 'openLookupFromContext', 'closeLookup', 'navigateToTab', 'switchBook',
-  'bindStaticEvents', 'playAudio', 'playTTS', 'renderFlow', 'saveBookWithLookupIndex'];
+  'bindStaticEvents', 'playAudio', 'playTTS', 'renderFlow', 'saveBookWithLookupIndex', 'rateWord', 'markWordVeryFamiliar'];
 
 function element() {
   const children = new Map();
@@ -27,6 +27,7 @@ function element() {
       } },
     addEventListener(name, fn) { this.listeners[name] = fn; },
     setAttribute(name, value) { this.attributes[name] = value; },
+    scrollIntoView(options) { this.scrolled = options; },
     focus(options) { this.focused = options; }, close() {}, matches() { return false; },
     contains(node) { return [...children.values()].includes(node); },
     querySelector(key) { if (!children.has(key)) children.set(key, element()); return children.get(key); },
@@ -590,12 +591,16 @@ test('quick lookup is rendered as native buttons and keeps the headword highligh
   const word = a.normalizeWords([{ word: 'e-mail', examples: [{ en: 'Use e-mail & <example>.' }],
     phrases: [{ en: 'send e-mail' }], synonyms: ['e-mail', 'be', 'contact'], etymology: { cognates: ['mailing'] } }])[0];
   for (const markup of [a.wordDetailHTML(word, true), a.reviewDetailHTML(word, true)]) {
-    assert.match(markup, /<strong style="color:var\(--indigo\)">e-mail<\/strong>/);
+    assert.match(markup, /<strong class="word-highlight">e-mail<\/strong>/);
     for (const term of ['Use', 'contact', 'mailing']) {
       assert.match(markup, new RegExp('<button class="lookup-word" type="button" data-lookup-word="' + term + '">'));
     }
     assert.doesNotMatch(markup, /data-lookup-word="(?:e-mail|be)"|<example>/);
     assert.match(markup, /data-tts-text="Use e-mail &amp; &lt;example&gt;\."/);
+    for (const type of ['phrase-item', 'example']) {
+      const entry = markup.slice(markup.indexOf('<div class="' + type + '">'));
+      assert.match(entry, /^<div[^>]+><button[^>]+data-tts-text[^>]+><svg[^>]+><use class="audio-speaker" href="#icon-audio-speaker"/);
+    }
   }
 });
 
@@ -650,6 +655,46 @@ test('TTS is canceled on lookup departure, navigation and a new study card', asy
   assert.deepEqual(canceled, spoken);
   assert.equal(a.state.ttsPlayback, null);
   assert.equal(button.attributes['aria-pressed'], 'false');
+});
+
+test('review again aligns the next study word and completing the queue aligns the first choice question', async () => {
+  const a = app();
+  a.state.flowOpen = true;
+  a.state.session = a.normalizeSession({ id: 'today', bookId: 'test', date: a.localDate(), stage: 'learn', newIds: ['a', 'b'] });
+  const study = a.document.querySelector('#studyView');
+  const card = study.querySelector('.study-card');
+  const question = study.querySelector('#choiceQuestion');
+
+  await a.rateWord(false);
+  assert.equal(a.state.session.learnQueue[a.state.session.learnIndex], 'b');
+  assert.equal(card.scrolled?.block, 'start');
+  assert.equal(question.scrolled, undefined);
+
+  await a.rateWord(true);
+  assert.equal(a.state.session.learnQueue[a.state.session.learnIndex], 'a');
+  await a.rateWord(true);
+  assert.equal(a.state.session.quizMode, 'choice');
+  assert.match(study.innerHTML, /第一轮 · 认词/);
+  assert.equal(question.scrolled?.block, 'start');
+  await a.answerQuiz('甲');
+  assert.match(study.innerHTML, /class="choice-question with-scroll-space"/);
+});
+
+test('marking the last word familiar aligns the first choice question for the remaining words', async () => {
+  const a = app();
+  a.state.flowOpen = true;
+  a.state.session = a.normalizeSession({
+    id: 'today', bookId: 'test', date: a.localDate(), stage: 'learn',
+    newIds: ['a', 'b'], learnQueue: ['a', 'b'], learnIndex: 1, learnDone: ['a']
+  });
+  const study = a.document.querySelector('#studyView');
+
+  await a.markWordVeryFamiliar();
+  assert.equal(a.state.session.quizMode, 'choice');
+  assert.deepEqual(Array.from(a.state.session.quizQueue), ['a']);
+  assert.match(study.innerHTML, /第一轮 · 认词/);
+  assert.equal(study.querySelector('#choiceQuestion').scrolled?.block, 'start');
+  assert.equal(study.querySelector('.study-card').scrolled, undefined);
 });
 
 test('stale recorded audio failures cannot interrupt a newer sentence reading', async () => {

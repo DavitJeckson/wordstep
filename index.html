@@ -16,9 +16,11 @@
       --ink: #141827;
       --muted: #697083;
       --line: #e3e6eb;
-      --indigo: #4f46e5;
-      --indigo-dark: #3730a3;
-      --indigo-soft: #eef2ff;
+      --guide: #d3d8ee;
+      --accent: #4f46e5;
+      --accent-dark: #3730a3;
+      --accent-soft: #eef2ff;
+      --focus: rgba(79,70,229,.3);
       --coral: #ff704d;
       --coral-soft: #fff0eb;
       --green: #158466;
@@ -26,7 +28,11 @@
       --red: #d93d55;
       --red-soft: #fff0f2;
       --shadow: 0 12px 30px rgba(28, 33, 48, .08), 0 2px 8px rgba(28, 33, 48, .05);
-      --radius: 20px;
+      --page-gutter: 18px;
+      --main-bottom-padding: calc(92px + env(safe-area-inset-bottom));
+      --section-indent: 11px;
+      --nav-offset: 0px;
+      --actions-bottom: calc(72px + env(safe-area-inset-bottom) + var(--nav-offset));
       font-family: Inter, "SF Pro Text", "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
       color-scheme: light;
     }
@@ -38,9 +44,7 @@
       min-width: 320px;
       min-height: 100vh;
       min-height: 100dvh;
-      background:
-        radial-gradient(circle at 50% -10%, rgba(79,70,229,.08), transparent 32rem),
-        var(--bg);
+      background: var(--bg);
       color: var(--ink);
       -webkit-font-smoothing: antialiased;
       -webkit-tap-highlight-color: transparent;
@@ -48,50 +52,46 @@
 
     button, input, select { font: inherit; }
     button { color: inherit; }
-    button:focus-visible, input:focus-visible, select:focus-visible {
-      outline: 3px solid rgba(79,70,229,.3);
+    button:focus-visible, input:focus-visible, select:focus-visible, summary:focus-visible {
+      outline: 2px solid var(--focus);
       outline-offset: 2px;
     }
 
     .app {
+      display: flex;
+      flex-direction: column;
       width: min(100%, 560px);
       min-height: 100vh;
       min-height: 100dvh;
       margin: 0 auto;
-      background: rgba(255,255,255,.84);
-      box-shadow: 0 0 0 1px rgba(20,24,39,.04), 0 0 60px rgba(20,24,39,.08);
+      background: var(--surface);
       position: relative;
     }
 
     .header {
-      position: sticky;
-      top: 0;
-      z-index: 20;
       display: grid;
       grid-template-columns: auto minmax(0, 1fr) auto;
       align-items: center;
       gap: 10px;
-      min-height: 72px;
-      padding: max(14px, env(safe-area-inset-top)) 18px 12px;
-      background: rgba(255,255,255,.94);
+      min-height: 61px;
+      padding: max(8px, env(safe-area-inset-top)) var(--page-gutter) 8px;
       border-bottom: 1px solid var(--line);
-      backdrop-filter: blur(16px);
     }
 
     .brand {
       display: inline-flex;
       align-items: center;
-      gap: 8px;
-      color: var(--indigo);
-      font-size: 25px;
+      gap: 6px;
+      color: var(--accent);
+      font-size: 22px;
       line-height: 1;
       font-weight: 800;
       letter-spacing: -.04em;
     }
     .brand img {
       flex: 0 0 auto;
-      width: 28px;
-      height: 28px;
+      width: 26px;
+      height: 26px;
     }
 
     .book-switch {
@@ -100,7 +100,7 @@
       justify-content: center;
       gap: 7px;
       min-width: 0;
-      height: 42px;
+      min-height: 44px;
       padding: 0 11px;
       border: 0;
       border-radius: 12px;
@@ -108,9 +108,10 @@
       cursor: pointer;
     }
     .book-switch:hover { background: var(--surface-2); }
+    .book-switch svg { flex: none; }
     .book-switch span {
       overflow: hidden;
-      color: #353a49;
+      color: var(--ink);
       font-size: 14px;
       font-weight: 650;
       text-overflow: ellipsis;
@@ -122,15 +123,16 @@
       align-items: center;
       gap: 4px;
       min-width: max-content;
-      color: #3d4251;
+      color: var(--muted);
       font-size: 13px;
       font-weight: 650;
     }
     .streak b { color: var(--coral); font-size: 17px; }
 
     main {
-      min-height: calc(100dvh - 72px);
-      padding: 22px 18px calc(92px + env(safe-area-inset-bottom));
+      flex: 1;
+      min-width: 0;
+      padding: 20px var(--page-gutter) var(--main-bottom-padding);
     }
 
     .screen { animation: enter .18s ease-out both; }
@@ -138,7 +140,7 @@
 
     .eyebrow {
       margin: 0 0 5px;
-      color: var(--indigo);
+      color: var(--accent);
       font-size: 12px;
       font-weight: 800;
       letter-spacing: .12em;
@@ -157,44 +159,41 @@
       margin-bottom: 16px;
     }
     .today-number { display: flex; align-items: baseline; gap: 8px; }
-    .today-number strong { color: var(--indigo); font-size: 42px; line-height: 1; letter-spacing: -.04em; }
-    .today-number span { font-size: 21px; font-weight: 750; }
+    .today-number { font-variant-numeric: tabular-nums; }
+    .today-number strong { color: var(--accent); font-size: 34px; line-height: 1; letter-spacing: -.04em; }
+    .today-number span { color: var(--muted); font-size: 16px; font-weight: 650; }
     .completion { color: var(--muted); font-size: 13px; font-weight: 650; }
 
     .progress-track {
-      height: 8px;
-      margin-bottom: 18px;
+      height: 4px;
+      margin-bottom: 14px;
       overflow: hidden;
       border-radius: 99px;
-      background: #e8e9ee;
+      background: var(--accent-soft);
     }
     .progress-fill {
       width: 0;
       height: 100%;
       border-radius: inherit;
-      background: linear-gradient(90deg, var(--indigo), #7067f4);
+      background: var(--accent);
       transition: width .3s ease-out;
     }
 
     .stage-rail {
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      margin-bottom: 18px;
-      padding: 12px 10px;
-      border: 1px solid var(--line);
-      border-radius: 17px;
-      background: var(--surface);
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      margin-bottom: 20px;
     }
     .stage-item {
       position: relative;
       min-width: 0;
-      padding: 3px 8px;
-      text-align: center;
+      padding: 1px 8px 1px var(--section-indent);
+      border-inline-start: 1px solid var(--line);
     }
-    .stage-item + .stage-item { border-left: 1px solid var(--line); }
+    .stage-item.active { border-inline-start-color: var(--accent); }
     .stage-item small { display: block; margin-bottom: 3px; color: var(--muted); font-size: 11px; }
     .stage-item b { font-size: 19px; }
-    .stage-item.active small, .stage-item.active b { color: var(--indigo); }
+    .stage-item.active small, .stage-item.active b { color: var(--accent); }
     .stage-item.done::after {
       content: "✓";
       position: absolute;
@@ -205,34 +204,24 @@
       font-weight: 900;
     }
 
-    .card {
-      border: 1px solid var(--line);
-      border-radius: var(--radius);
-      background: var(--surface);
-      box-shadow: var(--shadow);
-    }
-    .dashboard-card { padding: 20px; }
+    .card { min-width: 0; }
+    .flow-list { padding-inline-start: var(--section-indent); border-inline-start: 1px solid var(--guide); }
     .flow-row {
       display: grid;
-      grid-template-columns: 42px 1fr auto;
+      grid-template-columns: 20px minmax(0, 1fr) auto;
       align-items: center;
-      gap: 12px;
+      gap: 10px;
       padding: 13px 0;
       border-bottom: 1px solid var(--line);
     }
     .flow-row:last-of-type { border-bottom: 0; }
     .flow-icon {
       display: grid;
-      width: 42px;
-      height: 42px;
       place-items: center;
-      border-radius: 13px;
-      background: var(--indigo-soft);
-      color: var(--indigo);
-      font-size: 18px;
+      color: var(--accent);
+      font-size: 15px;
       font-weight: 800;
     }
-    .flow-icon--quiz { background: var(--coral-soft); color: var(--coral); }
     .flow-row h3 { margin: 0 0 2px; font-size: 15px; }
     .flow-row p { margin: 0; color: var(--muted); font-size: 12px; }
     .flow-count { font-size: 22px; font-weight: 800; }
@@ -248,98 +237,71 @@
       cursor: pointer;
       transition: transform .12s ease, background .12s ease, border-color .12s ease;
     }
-    .primary { border: 1px solid var(--indigo); background: var(--indigo); color: #fff; box-shadow: 0 8px 18px rgba(79,70,229,.2); }
-    .primary:hover { background: var(--indigo-dark); }
+    .primary { border: 1px solid var(--accent); background: var(--accent); color: #fff; }
+    .primary:hover { background: var(--accent-dark); }
     .primary:active, .secondary:active, .danger:active, .ghost:active { transform: scale(.98); }
-    .secondary { border: 1.5px solid var(--indigo); background: #fff; color: var(--indigo); }
-    .secondary:hover { background: var(--indigo-soft); }
+    .secondary { border: 1px solid var(--guide); background: var(--accent-soft); color: var(--accent-dark); }
+    .secondary:hover { border-color: var(--accent); }
     .ghost { border: 1px solid var(--line); background: var(--surface); color: #454a5a; }
     .danger { border: 1px solid #f2bdc5; background: #fff; color: var(--red); }
     .block { width: 100%; }
     .start-button { margin-top: 17px; }
     button:disabled { cursor: default; opacity: .55; transform: none !important; }
 
-    .study-card { overflow: hidden; }
+    .study-card, .choice-question { scroll-margin-top: max(12px, env(safe-area-inset-top)); }
     .study-top {
-      padding: 24px 22px 18px;
+      padding: 8px 0 10px;
     }
     .word {
       margin: 0;
       overflow-wrap: anywhere;
-      font-size: clamp(36px, 11vw, 54px);
+      font-size: clamp(39px, 11vw, 54px);
       line-height: 1.05;
       letter-spacing: -.045em;
     }
-    .pronunciation-row { display: flex; align-items: flex-start; gap: 10px; min-height: 32px; margin-top: 8px; }
+    .pronunciation-row { display: flex; align-items: center; gap: 8px; padding-inline-start: var(--section-indent); }
+    .pronunciation-row:empty { display: none; }
+    .pronunciation-row .audio-btn { margin-inline-start: auto; }
     .phonetic-list {
       display: grid;
-      gap: 3px;
+      min-width: 0;
       color: var(--muted);
       font-family: ui-serif, Georgia, serif;
-      font-size: 18px;
-      line-height: 1.5;
+      font-size: 16px;
+      line-height: 1.4;
     }
-    .phonetic-line { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; min-height: 30px; }
-    .phonetic-text { min-width: 0; }
-    .phonetic-audio-group { display: inline-flex; align-items: center; gap: 5px; }
-    .phonetic-audio {
-      display: inline-grid;
-      min-width: 28px;
-      height: 28px;
-      padding: 0 6px;
-      place-items: center;
-      border: 1px solid #d4d2fa;
-      border-radius: 9px;
-      background: var(--indigo-soft);
-      color: var(--indigo-dark);
+    .phonetic-line { display: flex; align-items: center; flex-wrap: wrap; column-gap: 3px; }
+    .phonetic-text { min-width: 0; overflow-wrap: anywhere; }
+    .phonetic-audio-group { display: inline-flex; align-items: center; gap: 2px; }
+    .audio-control {
+      display: inline-flex;
+      flex: none;
+      align-items: center;
+      justify-content: center;
+      gap: 3px;
+      min-width: 34px;
+      min-height: 34px;
+      padding: 0 4px;
+      border: 0;
+      border-radius: 7px;
+      background: transparent;
+      color: var(--accent);
       font-family: Inter, "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
       font-size: 12px;
       line-height: 1;
       cursor: pointer;
-    }
-    .phonetic-audio:hover { border-color: var(--indigo); background: #e3e5ff; }
-    .phonetic-audio.playing { animation: pulse .8s ease-in-out infinite alternate; }
-    .phonetic-list.compact { gap: 1px; font-size: 13px; line-height: 1.45; }
-    .phonetic-list.compact .phonetic-line { min-height: 26px; }
-    .phonetic-list.compact .phonetic-audio { min-width: 26px; height: 26px; padding-inline: 5px; font-size: 11px; }
-    .audio-btn {
-      flex: 0 0 auto;
-      display: grid;
-      width: 30px;
-      height: 30px;
-      place-items: center;
-      border: 0;
-      border-radius: 50%;
-      background: var(--indigo);
-      color: #fff;
-      font-size: 11px;
-      cursor: pointer;
-      box-shadow: 0 0 0 4px var(--indigo-soft);
-      margin-top: 2px;
-    }
-    .audio-btn.playing { animation: pulse .8s ease-in-out infinite alternate; }
-    @keyframes pulse { to { box-shadow: 0 0 0 8px rgba(79,70,229,.08); } }
-
-    .tts-btn {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      width: 22px;
-      height: 22px;
-      margin-left: 6px;
-      border: none;
-      border-radius: 6px;
-      background: transparent;
-      color: var(--muted);
-      font-size: 13px;
-      cursor: pointer;
-      vertical-align: middle;
       transition: background .12s ease, color .12s ease;
     }
-    .tts-btn::before { content: "🔊"; }
-    .tts-btn.playing { color: var(--indigo); }
-    .tts-btn.playing::before { content: "⏸"; }
-    .tts-btn:hover { background: var(--indigo-soft); color: var(--indigo); }
+    .audio-control:hover, .audio-control[aria-pressed="true"] {
+      background: var(--accent-soft);
+      color: var(--accent-dark);
+    }
+    .audio-icon { flex: none; width: 17px; height: 17px; pointer-events: none; }
+    .audio-icon .audio-stop,
+    .audio-control[aria-pressed="true"] .audio-speaker { display: none; }
+    .audio-control[aria-pressed="true"] .audio-stop { display: inline; }
+    .phonetic-list.compact { font-size: 13px; line-height: 1.45; }
+    .phonetic-list.compact .phonetic-audio { font-size: 11px; }
 
     .lookup-word {
       display: inline;
@@ -347,22 +309,23 @@
       border: 0;
       background: transparent;
       font: inherit;
+      max-width: 100%;
+      overflow-wrap: anywhere;
       text-align: inherit;
       cursor: pointer;
-      color: var(--indigo);
+      color: var(--accent);
       text-decoration: underline;
       text-decoration-style: dotted;
-      text-decoration-color: rgba(79,70,229,.4);
+      text-decoration-color: var(--guide);
       text-underline-offset: 2px;
     }
     .lookup-word:hover {
       text-decoration-style: solid;
-      text-decoration-color: var(--indigo);
+      text-decoration-color: var(--accent);
     }
 
     .search-card {
-      padding: 20px;
-      margin-bottom: 20px;
+      margin-bottom: 18px;
     }
     .search-input-wrapper {
       position: relative;
@@ -373,7 +336,7 @@
     .lookup-heading {
       flex: 0 0 auto;
       margin: 0;
-      font-size: 20px;
+      font-size: 16px;
       letter-spacing: normal;
       white-space: nowrap;
     }
@@ -381,71 +344,67 @@
     .search-input {
       flex: 1;
       min-width: 0;
-      min-height: 48px;
-      padding: 0 16px;
-      border: 1.5px solid var(--line);
-      border-radius: 12px;
+      min-height: 44px;
+      padding: 0 12px;
+      border: 1px solid var(--line);
+      border-radius: 9px;
       background: var(--surface-2);
       color: var(--ink);
       font-size: 16px;
       transition: border-color .12s ease, background .12s ease;
     }
     .search-input:focus {
-      border-color: var(--indigo);
-      background: #fff;
-      outline: none;
+      border-color: var(--accent);
+      background: var(--surface);
     }
     .search-input::placeholder {
       color: var(--muted);
     }
     .search-btn {
       flex: 0 0 auto;
-      min-height: 48px;
-      padding: 0 20px;
-      border: none;
-      border-radius: 12px;
-      background: var(--indigo);
-      color: #fff;
-      font-size: 15px;
+      min-height: 44px;
+      padding: 0 14px;
+      border: 1px solid transparent;
+      border-radius: 9px;
+      background: var(--accent-soft);
+      color: var(--accent-dark);
+      font-size: 14px;
       font-weight: 700;
       cursor: pointer;
       transition: background .12s ease, transform .12s ease;
     }
     .search-btn:hover {
-      background: var(--indigo-dark);
+      border-color: var(--guide);
     }
     .search-btn:active {
       transform: scale(.98);
     }
     .lookup-result-card {
-      margin-top: 20px;
-      padding: 24px 22px;
+      margin-top: 14px;
     }
     .lookup-not-found {
-      padding: 40px 20px;
-      text-align: center;
+      padding: 16px 0 16px var(--section-indent);
+      border-inline-start: 1px solid var(--guide);
       color: var(--muted);
     }
     .lookup-status { margin: 0; }
     .lookup-status:not(:empty) { margin-top: 8px; }
     .lookup-not-found, .lookup-note { overflow-wrap: anywhere; }
 
-    .word-detail { padding: 0 22px; }
     .meaning {
       margin: 0;
-      padding: 16px 0;
-      border-top: 1px solid var(--line);
-      font-size: 17px;
+      padding: 0 0 12px var(--section-indent);
+      font-size: 16px;
       font-weight: 650;
       line-height: 1.6;
     }
-    .analysis { color: #4b5161; font-size: 14px; line-height: 1.7; }
+    .analysis { color: var(--ink); font-size: 14px; line-height: 1.7; overflow-wrap: anywhere; }
     .analysis-section + .analysis-section { margin-top: 10px; }
     .analysis p, .analysis ul, .analysis ol { margin: 0 0 12px; }
     .analysis > :last-child, .analysis-section > :last-child { margin-bottom: 0; }
     .analysis h1, .analysis h2, .analysis h3, .analysis h4, .analysis h5, .analysis h6 {
       margin: 16px 0 7px;
-      color: #30364a;
+      color: var(--ink);
       font-weight: 750;
       line-height: 1.45;
     }
@@ -456,14 +415,14 @@
     .analysis > :first-child, .analysis-section > :first-child { margin-top: 0; }
     .analysis ul, .analysis ol { padding-left: 1.5em; }
     .analysis li + li { margin-top: 4px; }
-    .analysis a { color: var(--indigo-dark); text-decoration: underline; overflow-wrap: anywhere; }
+    .analysis a { color: var(--accent-dark); text-decoration: underline; overflow-wrap: anywhere; }
     .analysis code { padding: 1px 4px; border-radius: 4px; background: var(--surface-2); font-size: .92em; }
     .analysis-label {
       display: block;
       margin-bottom: 2px;
-      color: var(--indigo-dark);
-      font-size: 17px;
-      font-weight: 800;
+      color: var(--accent-dark);
+      font-size: 15px;
+      font-weight: 750;
       line-height: 1.5;
     }
     .analysis-details summary .analysis-label { margin-bottom: 0; }
@@ -478,58 +437,74 @@
       text-align: center;
     }
 
-    details.info-section { border-top: 1px solid var(--line); }
+    details.info-section:not([open]) { border-top: 1px solid var(--line); }
     details.info-section summary {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      min-height: 50px;
-      padding: 0 22px;
+      min-height: 44px;
       list-style: none;
-      color: #333847;
+      color: var(--ink);
       font-size: 14px;
       font-weight: 750;
       cursor: pointer;
     }
     details.info-section summary::-webkit-details-marker { display: none; }
-    details.info-section summary::after { content: "+"; color: var(--indigo); font-size: 20px; }
-    details.info-section[open] summary::after { content: "−"; }
-    .detail-body { padding: 0 22px 18px; }
-    .example { margin-bottom: 13px; padding-left: 12px; border-left: 3px solid #cfd2ff; }
-    .example:last-child { margin-bottom: 0; }
-    .example p { margin: 0 0 4px; font-size: 14px; line-height: 1.55; }
-    .example small { color: var(--muted); line-height: 1.5; }
-    .phrase-item { margin-bottom: 11px; padding: 11px 12px; border-left: 3px solid var(--coral); border-radius: 0 10px 10px 0; background: var(--coral-soft); }
-    .phrase-item:last-child { margin-bottom: 0; }
-    .phrase-item p { margin: 0 0 4px; color: #303544; font-size: 14px; font-weight: 750; line-height: 1.5; }
-    .phrase-item small { color: #6a554f; line-height: 1.55; }
-    .etymology-card { padding: 13px 14px; border-radius: 12px; background: var(--indigo-soft); color: #42475a; font-size: 13px; line-height: 1.7; }
+    details.info-section summary::after {
+      content: "";
+      flex: none;
+      width: 6px;
+      height: 6px;
+      margin-inline: 6px 4px;
+      border: solid var(--muted);
+      border-width: 0 1.5px 1.5px 0;
+      transform: rotate(-45deg);
+    }
+    details.info-section[open] summary::after { transform: rotate(45deg); }
+    .detail-body {
+      margin: 0 0 12px var(--section-indent);
+      padding-inline-start: 10px;
+      border-inline-start: 1px solid var(--guide);
+    }
+    .example, .phrase-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 3px;
+      margin-bottom: 10px;
+    }
+    .example:last-child, .phrase-item:last-child { margin-bottom: 0; }
+    .bilingual-copy { min-width: 0; padding-block: 5px; overflow-wrap: anywhere; }
+    .bilingual-copy p { margin: 0 0 2px; color: var(--accent); font-size: 15px; line-height: 1.55; }
+    .bilingual-copy small { display: block; color: var(--muted); line-height: 1.5; }
+    .phrase-item p { font-weight: 650; }
+    .tts-btn { align-items: flex-start; padding-top: 8px; }
+    .etymology-card { color: var(--ink); font-size: 14px; line-height: 1.7; overflow-wrap: anywhere; }
     .etymology-card p { margin: 0 0 8px; }
     .etymology-card p:last-child { margin-bottom: 0; }
-    .etymology-card b { color: var(--indigo-dark); }
-    .word-family { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 9px; }
-    .family-word { padding: 6px 9px; border-radius: 8px; background: #fff; color: #454a59; }
-    .family-word b { color: var(--indigo); }
-    .chip-list { display: flex; flex-wrap: wrap; gap: 8px; }
-    .chip { padding: 7px 10px; border-radius: 9px; background: var(--surface-2); color: #444a5a; font-size: 13px; }
-    .chip b { color: var(--indigo); }
+    .etymology-card b { color: var(--accent-dark); }
+    .word-family { display: flex; flex-wrap: wrap; gap: 5px 12px; margin-top: 6px; }
+    .family-word { color: var(--muted); }
+    .family-word b { color: var(--accent); }
+    .chip-list { display: flex; flex-wrap: wrap; gap: 5px 12px; }
+    .chip { max-width: 100%; color: var(--muted); font-size: 13px; overflow-wrap: anywhere; }
+    .chip b { color: var(--accent); }
 
     .actions {
       position: sticky;
-      bottom: calc(72px + env(safe-area-inset-bottom));
+      bottom: var(--actions-bottom);
       z-index: 10;
       display: grid;
       grid-template-columns: minmax(0, .82fr) minmax(0, 1.18fr);
       gap: 10px;
       margin-top: 14px;
       padding: 10px 0;
-      background: linear-gradient(transparent, rgba(244,245,247,.96) 25%);
+      background: linear-gradient(transparent, var(--surface) 30%);
     }
     .actions.single { grid-template-columns: 1fr; }
     .actions.lookup-actions {
       position: fixed;
       inset-inline: 0;
-      width: min(calc(100% - 36px), 524px);
+      width: calc(min(100%, 560px) - var(--page-gutter) - var(--page-gutter));
       margin: 0 auto;
     }
     #lookupView { padding-bottom: 72px; }
@@ -546,24 +521,28 @@
     .familiar-button { border-color: #9ed8c7; background: var(--green-soft); color: #0e654e; }
     .familiar-button:hover { border-color: var(--green); background: #d9f2e9; }
 
+    .choice-question {
+      min-height: calc(100vh - var(--main-bottom-padding));
+      min-height: calc(100dvh - var(--main-bottom-padding));
+    }
     .quiz-title { margin-bottom: 16px; text-align: center; }
     .quiz-title .word { font-size: clamp(38px, 12vw, 52px); }
     .quiz-title p { margin: 8px 0 0; color: var(--muted); }
     .options { display: grid; gap: 10px; }
     .option {
-      min-height: 58px;
-      padding: 12px 15px;
-      border: 1.5px solid var(--line);
-      border-radius: 14px;
-      background: #fff;
-      color: #303544;
+      min-height: 50px;
+      padding: 10px 12px;
+      border: 0;
+      border-block-end: 1px solid var(--line);
+      background: transparent;
+      color: var(--ink);
       font-size: 15px;
       font-weight: 620;
       line-height: 1.45;
       text-align: left;
       cursor: pointer;
     }
-    .option:hover { border-color: #b8b4f6; background: #fafaff; }
+    .option:hover { background: var(--accent-soft); }
     .option.unknown-option { border-style: dashed; background: var(--surface-2); color: var(--muted); font-weight: 750; text-align: center; }
     .option.unknown-option:hover { border-color: #aeb2bf; background: #f0f1f4; color: #444a59; }
     .option.correct { border-color: var(--green); background: var(--green-soft); color: #0e654e; }
@@ -592,14 +571,14 @@
       font-weight: 900;
     }
     .score-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 20px 0; }
-    .score-item { padding: 13px 5px; border-radius: 13px; background: var(--surface-2); }
+    .score-item { padding: 9px 5px; border-inline-start: 1px solid var(--line); }
     .score-item b { display: block; margin-bottom: 3px; font-size: 21px; }
     .score-item small { color: var(--muted); }
 
     .section-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; margin-bottom: 16px; }
     .section-head h1 { margin: 0; }
-    .stat-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 18px; }
-    .stat-card { padding: 18px; border: 1px solid var(--line); border-radius: 16px; background: #fff; }
+    .stat-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-bottom: 20px; }
+    .stat-card { padding: 5px var(--section-indent); border-inline-start: 1px solid var(--guide); }
     .stat-card b { display: block; margin-bottom: 4px; font-size: 28px; }
     .stat-card small { color: var(--muted); }
     .chart-card { padding: 19px 16px 14px; }
@@ -607,10 +586,10 @@
     .week-chart { display: grid; grid-template-columns: repeat(7, 1fr); align-items: end; gap: 8px; height: 145px; margin-top: 16px; }
     .day-bar { display: grid; grid-template-rows: 1fr auto; align-items: end; gap: 7px; height: 100%; text-align: center; }
     .bar-wrap { display: flex; align-items: end; justify-content: center; height: 100%; border-radius: 8px; background: var(--surface-2); }
-    .bar { width: 100%; min-height: 4px; border-radius: 8px; background: var(--indigo); transition: height .3s ease; }
+    .bar { width: 100%; min-height: 4px; border-radius: 8px; background: var(--accent); transition: height .3s ease; }
     .day-bar small { color: var(--muted); font-size: 10px; }
 
-    .calendar-card { margin-bottom: 14px; padding: 18px 14px 15px; }
+    .calendar-card { margin-bottom: 16px; padding-top: 16px; border-top: 1px solid var(--line); }
     .calendar-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 15px; }
     .calendar-head h2 { margin: 0; font-size: 17px; }
     .month-switch { display: grid; grid-template-columns: 36px minmax(96px, auto) 36px; align-items: center; gap: 4px; }
@@ -620,16 +599,16 @@
       height: 36px;
       place-items: center;
       border: 1px solid var(--line);
-      border-radius: 10px;
-      background: var(--surface-2);
-      color: var(--indigo);
+      border-radius: 7px;
+      background: transparent;
+      color: var(--accent);
       font-size: 20px;
       cursor: pointer;
     }
     .month-switch button:disabled { color: #a9adba; cursor: default; opacity: .55; }
     .month-switch b { font-size: 14px; text-align: center; }
     .calendar-weekdays, .learning-calendar { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 5px; }
-    .calendar-weekdays { margin-bottom: 6px; color: var(--muted); font-size: 10px; font-weight: 750; text-align: center; }
+    .calendar-weekdays { margin-bottom: 6px; color: var(--muted); font-size: 11px; font-weight: 750; text-align: center; }
     .calendar-day {
       position: relative;
       display: grid;
@@ -639,18 +618,18 @@
       justify-items: center;
       padding: 6px 2px 5px;
       border: 1px solid transparent;
-      border-radius: 10px;
-      background: var(--surface-2);
+      border-radius: 7px;
+      background: transparent;
       color: #555b6b;
       font-size: 11px;
     }
     .calendar-day.blank { background: transparent; }
-    .calendar-day.today { border-color: #aaa6f5; background: var(--indigo-soft); color: var(--indigo-dark); }
-    .calendar-day.has-learning { background: #f0efff; }
-    .calendar-day b { color: var(--indigo); font-size: 16px; line-height: 1; }
-    .calendar-day small { color: var(--muted); font-size: 8px; }
+    .calendar-day.today { border-color: var(--guide); color: var(--accent-dark); }
+    .calendar-day.has-learning { background: var(--accent-soft); }
+    .calendar-day b { color: var(--accent); font-size: 16px; line-height: 1; }
+    .calendar-day small { color: var(--muted); font-size: 10px; }
 
-    .stats-quiz-card { padding: 19px; }
+    .stats-quiz-card { padding-top: 16px; border-top: 1px solid var(--line); }
     .stats-quiz-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; }
     .stats-quiz-head h2 { margin-bottom: 4px; font-size: 17px; }
     .stats-quiz-head p { margin: 0; }
@@ -663,60 +642,56 @@
       gap: 12px;
       width: 100%;
       min-height: 68px;
-      padding: 12px 14px;
-      border: 1.5px solid #cfccfa;
-      border-radius: 13px;
-      background: #fafaff;
+      padding: 10px var(--section-indent);
+      border: 0;
+      border-inline-start: 1px solid var(--guide);
+      background: transparent;
       color: var(--ink);
       text-align: left;
       cursor: pointer;
     }
-    .quiz-source-option:hover { border-color: var(--indigo); background: var(--indigo-soft); }
+    .quiz-source-option:hover { border-color: var(--accent); background: var(--accent-soft); }
     .quiz-source-option b { display: block; margin-bottom: 3px; font-size: 14px; }
     .quiz-source-option small { display: block; color: var(--muted); font-size: 11px; line-height: 1.45; }
-    .quiz-source-option .quiz-source-action { color: var(--indigo); font-size: 12px; font-weight: 800; white-space: nowrap; }
+    .quiz-source-option .quiz-source-action { color: var(--accent); font-size: 12px; font-weight: 800; white-space: nowrap; }
     .quiz-source-option:disabled { border-color: var(--line); background: var(--surface-2); color: #8b909e; cursor: not-allowed; opacity: .72; }
     .quiz-source-option:disabled .quiz-source-action { color: #969ba8; }
     .recent-scores { display: grid; gap: 8px; margin-top: 16px; padding-top: 15px; border-top: 1px solid var(--line); }
     .recent-scores h3 { margin: 0 0 2px; font-size: 14px; }
-    .score-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 12px; border-radius: 11px; background: var(--surface-2); }
+    .score-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 8px 0 8px var(--section-indent); border-bottom: 1px solid var(--line); }
     .score-row span { color: var(--muted); font-size: 12px; }
-    .score-row b { color: var(--indigo-dark); font-size: 16px; }
+    .score-row b { color: var(--accent-dark); font-size: 16px; }
     .standalone-quiz-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 16px; }
     .standalone-quiz-head h1 { margin: 0; font-size: 23px; }
     .standalone-quiz-head .ghost { min-height: 38px; padding: 0 11px; border-radius: 10px; font-size: 12px; }
     .test-progress { margin-bottom: 22px; }
-    .test-result-score { margin: 2px 0 4px; color: var(--indigo); font-size: 58px; line-height: 1; letter-spacing: -.05em; }
+    .test-result-score { margin: 2px 0 4px; color: var(--accent); font-size: 58px; line-height: 1; letter-spacing: -.05em; }
 
     .review-controls {
       position: sticky;
-      top: 72px;
+      top: env(safe-area-inset-top);
       z-index: 8;
       margin: 0 -4px 14px;
       padding: 8px 4px 10px;
-      background: rgba(244,245,247,.94);
-      backdrop-filter: blur(12px);
+      background: var(--surface);
     }
     .review-tabs {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
       gap: 4px;
-      padding: 4px;
-      border: 1px solid var(--line);
-      border-radius: 13px;
-      background: #fff;
+      border-bottom: 1px solid var(--line);
     }
     .review-filter {
-      min-height: 40px;
+      min-height: 44px;
       border: 0;
-      border-radius: 9px;
+      border-bottom: 2px solid transparent;
       background: transparent;
       color: var(--muted);
       font-size: 13px;
       font-weight: 750;
       cursor: pointer;
     }
-    .review-filter.active { background: var(--indigo); color: #fff; }
+    .review-filter.active { border-bottom-color: var(--accent); color: var(--accent); }
     .review-search {
       width: 100%;
       min-height: 46px;
@@ -724,30 +699,23 @@
       padding: 0 14px;
       border: 1px solid var(--line);
       border-radius: 12px;
-      background: #fff;
+      background: var(--surface-2);
       color: var(--ink);
     }
     .review-search::placeholder { color: #9297a5; }
-    .review-list { display: grid; gap: 10px; }
-    .review-card {
-      overflow: hidden;
-      border: 1px solid var(--line);
-      border-radius: 16px;
-      background: #fff;
-      box-shadow: 0 4px 12px rgba(28,33,48,.04);
-    }
-    .review-card summary {
+    .review-card { border-top: 1px solid var(--line); }
+    .review-card > summary {
       display: grid;
       grid-template-columns: minmax(0, 1fr) minmax(54px, max-content);
       align-items: start;
       gap: 12px;
-      min-height: 80px;
-      padding: 14px 15px;
+      min-height: 72px;
+      padding: 12px 0;
       list-style: none;
       cursor: pointer;
     }
-    .review-card summary::-webkit-details-marker { display: none; }
-    .review-card summary > div:first-child { min-width: 0; }
+    .review-card > summary::-webkit-details-marker { display: none; }
+    .review-card > summary > div:first-child { min-width: 0; }
     .review-word { display: grid; align-items: start; gap: 3px; min-width: 0; }
     .review-word b {
       min-width: 0;
@@ -777,7 +745,7 @@
       white-space: nowrap;
       cursor: pointer;
     }
-    .review-action.relearn { border: 1px solid #c9c7f8; background: var(--indigo-soft); color: var(--indigo-dark); }
+    .review-action.relearn { border: 1px solid var(--guide); background: var(--accent-soft); color: var(--accent-dark); }
     .review-action.skip { border: 1px solid var(--line); background: var(--surface-2); color: #5c6272; }
     .review-action.remember { min-width: 72px; border: 1px solid #a9dfcf; background: var(--green-soft); color: #0e654e; }
     .review-action:disabled { cursor: default; opacity: .55; }
@@ -788,21 +756,9 @@
     .review-tag { display: inline-flex; align-items: center; min-height: 23px; padding: 0 7px; border-radius: 7px; font-size: 10px; font-weight: 800; }
     .review-tag.spelling { background: var(--red-soft); color: #ad2c42; }
     .review-tag.fuzzy { background: var(--coral-soft); color: #ae452d; }
-    .mini-audio {
-      display: grid;
-      width: 34px;
-      height: 34px;
-      place-items: center;
-      border: 0;
-      border-radius: 50%;
-      background: var(--indigo-soft);
-      color: var(--indigo);
-      cursor: pointer;
-    }
-    .review-detail { padding: 0 15px 16px; border-top: 1px solid var(--line); }
-    .review-detail .analysis-details { margin-bottom: 14px; border-top: 0; }
-    .review-detail .analysis-details summary { padding: 0; }
-    .review-detail .analysis-details .detail-body { padding: 0; }
+    .review-detail { margin: 0 0 14px var(--section-indent); padding-inline-start: 10px; border-inline-start: 1px solid var(--guide); }
+    .review-detail .analysis-details { margin-bottom: 14px; }
+    .review-detail .analysis-details .detail-body { margin-inline-start: 0; padding-inline-start: 0; border-inline-start: 0; }
     .review-result-count { color: var(--muted); font-size: 12px; font-weight: 650; }
 
     .quiz-kind {
@@ -845,7 +801,7 @@
       text-align: center;
       text-transform: lowercase;
     }
-    .spelling-input:focus { border-color: var(--indigo); outline: 3px solid rgba(79,70,229,.15); }
+    .spelling-input:focus { border-color: var(--accent); outline: 2px solid var(--focus); }
     .spelling-input.correct { border-color: var(--green); background: var(--green-soft); color: #0e654e; }
     .spelling-input.wrong { border-color: var(--red); background: var(--red-soft); color: #a7273b; }
     .spelling-answer {
@@ -856,15 +812,15 @@
       font-size: 14px;
       line-height: 1.55;
     }
-    .spelling-answer b { color: var(--indigo); font-size: 19px; letter-spacing: .03em; }
+    .spelling-answer b { color: var(--accent); font-size: 19px; letter-spacing: .03em; }
 
-    .plan-card { margin-bottom: 13px; padding: 19px; }
+    .plan-card { margin-bottom: 14px; padding: 14px 0 0 var(--section-indent); border-top: 1px solid var(--line); }
     .plan-row { display: flex; align-items: center; justify-content: space-between; gap: 15px; }
     .plan-row + .plan-row { margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--line); }
     .plan-row h3 { margin: 0 0 3px; font-size: 15px; }
     .plan-row p { margin: 0; color: var(--muted); font-size: 12px; line-height: 1.45; }
     .stepper { display: grid; grid-template-columns: 40px 46px 40px; align-items: center; overflow: hidden; border: 1px solid var(--line); border-radius: 12px; }
-    .stepper button { height: 40px; border: 0; background: var(--surface-2); color: var(--indigo); font-size: 20px; cursor: pointer; }
+    .stepper button { height: 40px; border: 0; background: var(--surface-2); color: var(--accent); font-size: 20px; cursor: pointer; }
     .stepper b { text-align: center; }
     .plan-meter { margin-top: 16px; }
     .plan-meter .progress-track { margin: 8px 0 0; }
@@ -873,7 +829,7 @@
     .bottom-nav {
       position: fixed;
       right: 0;
-      bottom: 0;
+      bottom: var(--nav-offset);
       left: 0;
       z-index: 30;
       display: grid;
@@ -883,8 +839,7 @@
       margin: 0 auto;
       padding: 7px 12px env(safe-area-inset-bottom);
       border-top: 1px solid var(--line);
-      background: rgba(255,255,255,.96);
-      backdrop-filter: blur(16px);
+      background: var(--surface);
     }
     .nav-btn {
       display: grid;
@@ -893,13 +848,13 @@
       border: 0;
       border-radius: 12px;
       background: transparent;
-      color: #7a7f8d;
+      color: var(--muted);
       font-size: 11px;
       font-weight: 700;
       cursor: pointer;
     }
     .nav-btn svg { width: 21px; height: 21px; }
-    .nav-btn.active { background: var(--indigo-soft); color: var(--indigo); }
+    .nav-btn.active { color: var(--accent); font-weight: 800; }
 
     dialog {
       width: min(calc(100% - 24px), 520px);
@@ -918,11 +873,11 @@
     .dialog-head h2 { margin: 0; }
     .close-btn { display: grid; width: 38px; height: 38px; place-items: center; border: 0; border-radius: 50%; background: var(--surface-2); cursor: pointer; }
     .dialog-body { max-height: calc(82dvh - 145px); overflow: auto; padding: 14px 18px 22px; }
-    .book-item { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 12px; margin-bottom: 9px; padding: 14px; border: 1.5px solid var(--line); border-radius: 14px; cursor: pointer; }
-    .book-item.active { border-color: var(--indigo); background: var(--indigo-soft); }
+    .book-item { display: grid; width: 100%; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 12px; padding: 12px var(--section-indent); border: 0; border-bottom: 1px solid var(--line); background: transparent; text-align: start; cursor: pointer; }
+    .book-item:hover, .book-item.active { background: var(--accent-soft); }
     .book-item h3 { margin: 0 0 3px; font-size: 15px; }
     .book-item p { margin: 0; color: var(--muted); font-size: 12px; }
-    .check { color: var(--indigo); font-size: 18px; font-weight: 900; }
+    .check { color: var(--accent); font-size: 18px; font-weight: 900; }
     .dialog-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; padding-top: 8px; }
     .format-note { margin: 14px 0 0; color: var(--muted); font-size: 12px; line-height: 1.6; }
 
@@ -930,7 +885,7 @@
     .toast {
       position: fixed;
       right: 18px;
-      bottom: calc(82px + env(safe-area-inset-bottom));
+      bottom: calc(82px + env(safe-area-inset-bottom) + var(--nav-offset));
       left: 18px;
       z-index: 50;
       max-width: 520px;
@@ -960,7 +915,7 @@
       min-width: min(270px, calc(100vw - 48px));
       justify-items: center;
       padding: 25px 22px 22px;
-      border: 1px solid rgba(79,70,229,.14);
+      border: 1px solid var(--guide);
       border-radius: 19px;
       background: #fff;
       box-shadow: var(--shadow);
@@ -970,8 +925,8 @@
       width: 40px;
       height: 40px;
       margin-bottom: 13px;
-      border: 4px solid #dddffa;
-      border-top-color: var(--indigo);
+      border: 4px solid var(--accent-soft);
+      border-top-color: var(--accent);
       border-radius: 50%;
       animation: loading-spin .72s linear infinite;
     }
@@ -983,26 +938,25 @@
     .empty { padding: 28px 16px; color: var(--muted); text-align: center; }
 
     @media (min-width: 620px) {
+      :root { --nav-offset: 18px; }
       body { padding: 18px 0; }
-      .app { min-height: calc(100dvh - 36px); border-radius: 24px; overflow: hidden; }
-      .bottom-nav { bottom: 18px; border-radius: 0 0 24px 24px; }
-      .actions.lookup-actions { bottom: calc(90px + env(safe-area-inset-bottom)); }
+      .app { min-height: calc(100dvh - 36px); border-radius: 24px; }
+      .bottom-nav { border-radius: 0 0 24px 24px; }
       dialog { margin-bottom: max(18px, calc((100dvh - 760px) / 2)); border-radius: 22px; }
     }
+    @media (pointer: coarse) {
+      .audio-control { min-width: 44px; min-height: 44px; }
+    }
     @media (max-width: 380px) {
-      .header { padding-right: 13px; padding-left: 13px; }
-      main { padding-right: 13px; padding-left: 13px; }
-      .actions.lookup-actions { width: calc(100% - 26px); }
-      #lookupView .search-card { padding-inline: 12px; }
-      #lookupView .search-input { padding-inline: 10px; }
-      #lookupView .search-btn { padding-inline: 12px; }
+      :root { --page-gutter: 14px; --section-indent: 9px; }
+      .header { gap: 6px; }
+      .search-input { padding-inline: 9px; }
+      .search-btn { padding-inline: 12px; }
       .streak span { display: none; }
       .book-switch { padding: 0 5px; }
-      .stage-item { padding-inline: 4px; }
-      .review-card summary { grid-template-columns: minmax(0, 1fr) 76px; gap: 8px; padding-inline: 12px; }
+      .review-card > summary { grid-template-columns: minmax(0, 1fr) 76px; gap: 8px; }
       .stats-quiz-head { display: grid; }
       .stats-quiz-head .primary { width: 100%; }
-      .calendar-card { padding-inline: 10px; }
       .calendar-day { min-height: 50px; }
     }
     @media (prefers-reduced-motion: reduce) {
@@ -1011,6 +965,14 @@
   </style>
 </head>
 <body>
+  <svg width="0" height="0" aria-hidden="true" style="position:absolute">
+    <symbol id="icon-audio-speaker" viewBox="0 0 24 24">
+      <path d="M11 5 6 9H3v6h3l5 4V5M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13"/>
+    </symbol>
+    <symbol id="icon-audio-stop" viewBox="0 0 24 24">
+      <path d="M9 5v14m6-14v14"/>
+    </symbol>
+  </svg>
   <div class="app">
     <header class="header">
       <div class="brand" aria-label="词阶"><img src="favicon.svg" alt="" aria-hidden="true">词阶</div>
@@ -1170,9 +1132,13 @@
     function esc(value) {
       return String(value ?? "").replace(/[&<>'"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" })[c]);
     }
+    function audioIconHTML() {
+      return '<svg class="audio-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><use class="audio-speaker" href="#icon-audio-speaker"/><use class="audio-stop" href="#icon-audio-stop"/></svg>';
+    }
+
     function pronunciationButtonHTML(word, type, showAccent = false) {
       const accent = type === 1 ? "英" : "美";
-      return `<button class="phonetic-audio" type="button" data-pronunciation-word="${esc(word.id)}" data-pronunciation-type="${type}" aria-label="播放 ${esc(word.word)} 的${accent}音" aria-pressed="false">${showAccent ? `${accent} ` : ""}🔊</button>`;
+      return `<button class="audio-control phonetic-audio" type="button" data-pronunciation-word="${esc(word.id)}" data-pronunciation-type="${type}" aria-label="播放 ${esc(word.word)} 的${accent}音" aria-pressed="false">${showAccent ? accent : ""}${audioIconHTML()}</button>`;
     }
     function phoneticWithAudioHTML(word, compact = false) {
       const raw = String(word?.phonetic || "").trim();
@@ -1619,6 +1585,7 @@
       state.flowOpen = false;
       state.revealed = false;
       $$(".nav-btn").forEach(button => button.classList.toggle("active", button.dataset.tab === tab));
+      window.scrollTo({ top: 0, behavior: "auto" });
       return render();
     }
 
@@ -1644,17 +1611,16 @@
       const reviewTitle = sourceDate === localDate(-1) ? "复习昨天学过的词" : sourceDate ? "复习最近一次学过的词" : "复习最近学过的词";
       const reviewCopy = c.review && sourceDate ? `${dateLabel(sourceDate)} 学过的单词` : "还没有可复习的历史单词";
       setStudyView(`<section class="screen">
-        <p class="eyebrow">DAILY ROUTINE</p>
-        <div class="today-head"><div><h1>今日学习</h1><p class="sub">${dateLabel(localDate())} · 按节奏完成三步</p></div><div class="today-number"><strong>${c.done}</strong><span>/ ${c.total}</span></div></div>
+        <div class="today-head"><div><h1>今日学习</h1><p class="sub">${dateLabel(localDate())}</p></div><div class="today-number"><strong>${c.done}</strong><span>/ ${c.total}</span></div></div>
         <div class="progress-track" aria-label="今日进度"><div class="progress-fill" style="width:${c.percent}%"></div></div>
         ${railHTML()}
         ${lookupFormHTML()}
-        <div class="card dashboard-card">
+        <div class="flow-list">
           <div class="flow-row"><div class="flow-icon">↺</div><div><h3>${reviewTitle}</h3><p>${reviewCopy}</p></div><div class="flow-count">${c.review}</div></div>
           <div class="flow-row"><div class="flow-icon">Aa</div><div><h3>学习今天的新词</h3><p>详细解析、常用短语、例句、辨析与词源</p></div><div class="flow-count">${c.learn}</div></div>
-          <div class="flow-row"><div class="flow-icon flow-icon--quiz">✓</div><div><h3>完成当天测验</h3><p>释义选择 + 中文提示拼写</p></div><div class="flow-count">${c.quiz}</div></div>
-          <button class="primary block start-button" type="button" id="startFlow">${action} · ${stageLabel(state.session.stage)}</button>
+          <div class="flow-row"><div class="flow-icon">✓</div><div><h3>完成当天测验</h3><p>释义选择 + 中文提示拼写</p></div><div class="flow-count">${c.quiz}</div></div>
         </div>
+        <button class="primary block start-button" type="button" id="startFlow">${action} · ${stageLabel(state.session.stage)}</button>
       </section>`);
       $("#startFlow").addEventListener("click", () => { state.flowOpen = true; state.revealed = false; render(); });
     }
@@ -1699,7 +1665,7 @@
         <div class="progress-track"><div class="progress-fill" style="width:${c.percent}%"></div></div>
         ${railHTML()}
         <article class="card study-card">
-          <div class="study-top"><h1 class="word">${esc(word.word)}</h1><div class="pronunciation-row">${phoneticWithAudioHTML(word)}${hasRecordedAudio(word) ? `<button class="audio-btn" type="button" id="audioButton" aria-label="播放 ${esc(word.word)} 的录制发音">▶</button>` : ""}</div></div>
+          <div class="study-top"><h1 class="word">${esc(word.word)}</h1><div class="pronunciation-row">${phoneticWithAudioHTML(word)}${hasRecordedAudio(word) ? `<button class="audio-control audio-btn" type="button" id="audioButton" aria-label="播放 ${esc(word.word)} 的录制发音" aria-pressed="false">${audioIconHTML()}</button>` : ""}</div></div>
           ${showDetail ? wordDetailHTML(word, true) : `<div class="reveal-placeholder"><div><b>先回忆这个词的含义</b><p class="sub">想好后再显示答案</p></div></div>`}
         </article>
         ${isReview
@@ -1724,9 +1690,9 @@
     function bilingualItemHTML(item, word, className, enableLookup) {
       const english = enableLookup ? makeWordLookupable(item.en, word.word) : highlightWord(item.en, word.word);
       const audio = enableLookup
-        ? `<button class="tts-btn" type="button" data-tts-text="${esc(item.en)}" aria-label="朗读 ${esc(item.en)}" aria-pressed="false"></button>`
+        ? `<button class="audio-control tts-btn" type="button" data-tts-text="${esc(item.en)}" aria-label="朗读 ${esc(item.en)}" aria-pressed="false">${audioIconHTML()}</button>`
         : "";
-      return `<div class="${className}"><p>${english}${audio}</p><small>${esc(item.zh)}</small></div>`;
+      return `<div class="${className}">${audio}<div class="bilingual-copy"><p>${english}</p><small>${esc(item.zh)}</small></div></div>`;
     }
 
     function phraseSectionHTML(word, compact = false, enableLookup = false) {
@@ -1851,7 +1817,7 @@
         const before = Array.from(text.slice(0, start)).pop();
         const after = Array.from(text.slice(end))[0];
         if (isWordPart(before) || isWordPart(after)) continue;
-        result += renderText(text.slice(cursor, start)) + `<strong style="color:var(--indigo)">${esc(match[0])}</strong>`;
+        result += renderText(text.slice(cursor, start)) + `<strong style="color:var(--accent)">${esc(match[0])}</strong>`;
         cursor = end;
       }
       return result + renderText(text.slice(cursor));
@@ -1869,7 +1835,6 @@
 
 
     function setAudioPlaying(button, playing) {
-      button.classList.toggle("playing", playing);
       button.setAttribute("aria-pressed", String(playing));
     }
 
@@ -2110,7 +2075,7 @@
       let content;
       if (word) {
         content = `${baseNote}<article class="card lookup-result-card">
-          <div class="study-top"><h2 class="word">${esc(word.word)}</h2><div class="pronunciation-row">${phoneticWithAudioHTML(word)}${hasRecordedAudio(word) ? `<button class="audio-btn" type="button" id="lookupAudioButton" aria-label="播放 ${esc(word.word)} 的录制发音" aria-pressed="false">▶</button>` : ""}</div></div>
+          <div class="study-top"><h2 class="word">${esc(word.word)}</h2><div class="pronunciation-row">${phoneticWithAudioHTML(word)}${hasRecordedAudio(word) ? `<button class="audio-control audio-btn" type="button" id="lookupAudioButton" aria-label="播放 ${esc(word.word)} 的录制发音" aria-pressed="false">${audioIconHTML()}</button>` : ""}</div></div>
           ${wordDetailHTML(word, true)}
         </article>`;
       } else {
@@ -2208,25 +2173,18 @@
       } catch { fallback(); }
     }
 
-    function scrollStudyCardToTop() {
-      clearTimeout(scrollStudyCardToTop.timer);
+    function scrollSectionToTop(section) {
+      if (!section) return;
+      clearTimeout(scrollSectionToTop.timer);
       const align = () => {
-        if (main.hidden) return;
-        const card = $(".study-card");
-        if (!card) return;
-        const headerBottom = $(".header")?.getBoundingClientRect().bottom || 0;
-        const gap = 10;
-        const delta = card.getBoundingClientRect().top - headerBottom - gap;
-        if (Math.abs(delta) > 1) {
-          window.scrollTo({ top: Math.max(0, window.scrollY + delta), behavior: "auto" });
-        }
+        if (!main.hidden && section.isConnected) section.scrollIntoView({ block: "start", behavior: "auto" });
       };
       requestAnimationFrame(() => {
         align();
         requestAnimationFrame(align);
       });
       // .screen has a short translate animation; correct once it has fully settled.
-      scrollStudyCardToTop.timer = setTimeout(align, 220);
+      scrollSectionToTop.timer = setTimeout(align, 220);
     }
 
     async function goToPreviousLearnWord() {
@@ -2238,7 +2196,7 @@
       state.revealed = false;
       await put("sessions", s);
       renderFlow();
-      scrollStudyCardToTop();
+      scrollSectionToTop($(".study-card", main));
     }
 
     async function markWordVeryFamiliar() {
@@ -2268,7 +2226,7 @@
       await saveActivity(s, false);
       state.revealed = false;
       await advanceStage();
-      if (s.stage === "learn") scrollStudyCardToTop();
+      if (s.stage === "learn") scrollSectionToTop($(".study-card", main));
       toast(`“${word.word}”已标记为很熟悉，今日不再学习和测验`);
     }
 
@@ -2309,7 +2267,7 @@
       if (s.stage === "learn") await saveActivity(s, false);
       state.revealed = false;
       await advanceStage();
-      if (shouldScrollToNextWord) scrollStudyCardToTop();
+      if (shouldScrollToNextWord) scrollSectionToTop($(".study-card", main));
     }
 
     async function advanceStage() {
@@ -2373,14 +2331,16 @@
         <div class="today-head"><div><p class="eyebrow">QUIZ · CHOICE</p><h2>释义选择 <span class="sub">${s.quizIndex + 1} / ${s.quizQueue.length}</span></h2></div><div class="completion">${s.quizIndex >= s.newIds.length ? "释义错题加练" : `今日 ${c.percent}%`}</div></div>
         <div class="progress-track"><div class="progress-fill" style="width:${c.percent}%"></div></div>
         ${railHTML()}
-        <div class="quiz-title"><span class="quiz-kind">第一轮 · 认词</span><h1 class="word">${esc(word.word)}</h1><p>请选择最准确的中文含义</p></div>
-        <div class="options">${options.map(option => {
-          let cls = "";
-          if (answered && option === word.meaning) cls = "correct";
-          else if (answered && option === state.selectedAnswer) cls = "wrong";
-          return `<button class="option ${cls}" type="button" data-option="${esc(option)}" ${answered ? "disabled" : ""}>${esc(option)}</button>`;
-        }).join("")}<button class="option unknown-option ${answered && state.selectedAnswer === null ? "wrong" : ""}" type="button" id="unknownChoice" ${answered ? "disabled" : ""} aria-label="我不知道，按错误答案记录">我不知道</button></div>
-        ${answered ? `<div class="answer-note"><b>${isCorrect ? "回答正确" : "正确答案"}</b>：${esc(word.meaning)}${!isCorrect ? "<br>这个词已加入本轮加练。" : ""}</div><div class="actions single"><button class="primary block" type="button" id="nextQuestion">${s.quizIndex + 1 >= s.quizQueue.length ? "完成今日学习" : "下一题"}</button></div>` : ""}
+        <div class="choice-question" id="choiceQuestion">
+          <div class="quiz-title"><span class="quiz-kind">第一轮 · 认词</span><h1 class="word">${esc(word.word)}</h1><p>请选择最准确的中文含义</p></div>
+          <div class="options">${options.map(option => {
+            let cls = "";
+            if (answered && option === word.meaning) cls = "correct";
+            else if (answered && option === state.selectedAnswer) cls = "wrong";
+            return `<button class="option ${cls}" type="button" data-option="${esc(option)}" ${answered ? "disabled" : ""}>${esc(option)}</button>`;
+          }).join("")}<button class="option unknown-option ${answered && state.selectedAnswer === null ? "wrong" : ""}" type="button" id="unknownChoice" ${answered ? "disabled" : ""} aria-label="我不知道，按错误答案记录">我不知道</button></div>
+          ${answered ? `<div class="answer-note"><b>${isCorrect ? "回答正确" : "正确答案"}</b>：${esc(word.meaning)}${!isCorrect ? "<br>这个词已加入本轮加练。" : ""}</div><div class="actions single"><button class="primary block" type="button" id="nextQuestion">${s.quizIndex + 1 >= s.quizQueue.length ? "完成今日学习" : "下一题"}</button></div>` : ""}
+        </div>
       </section>`);
       if (!answered) {
         $$("[data-option]").forEach(btn => btn.addEventListener("click", () => answerQuiz(btn.dataset.option)));
@@ -2509,10 +2469,14 @@
     }
 
     async function nextQuiz() {
-      state.session.quizIndex++;
+      const session = state.session;
+      session.quizIndex++;
       state.quizAnswered = false;
       state.selectedAnswer = null;
       await advanceStage();
+      if (state.session === session && state.flowOpen && state.tab === "today") {
+        scrollSectionToTop($("#choiceQuestion", main));
+      }
     }
 
     async function saveActivity(s, completed = true) {
@@ -2619,7 +2583,7 @@
           const searchText = `${word.word} ${word.phonetic} ${word.meaning} ${word.analysis} ${(word.phrases || []).map(x => `${x.en} ${x.zh}`).join(" ")} ${word.etymology?.root || ""} ${word.etymology?.explanation || ""}`.toLowerCase();
           searchIndex.set(word.id, searchText);
           return `<details class="review-card" data-review-word="${esc(word.id)}">
-            <summary><div><div class="review-word"><b class="${wordSizeClass}">${esc(word.word)}</b>${word.phonetic ? phoneticWithAudioHTML(word, true) : ""}</div><p class="review-meaning">${esc(word.meaning)}</p>${typeTags}</div><div class="review-meta">${hasRecordedAudio(word) ? `<button class="mini-audio" type="button" data-review-audio="${esc(word.id)}" aria-label="播放 ${esc(word.word)} 的录制发音">▶</button>` : ""}${action}<span>${statusLabel}</span></div></summary>
+            <summary><div><div class="review-word"><b class="${wordSizeClass}">${esc(word.word)}</b>${word.phonetic ? phoneticWithAudioHTML(word, true) : ""}</div><p class="review-meaning">${esc(word.meaning)}</p>${typeTags}</div><div class="review-meta">${hasRecordedAudio(word) ? `<button class="audio-control" type="button" data-review-audio="${esc(word.id)}" aria-label="播放 ${esc(word.word)} 的录制发音" aria-pressed="false">${audioIconHTML()}</button>` : ""}${action}<span>${statusLabel}</span></div></summary>
             <div class="review-detail"></div>
           </details>`;
         }).join("") : `<div class="card empty"><h2>${emptyCopy.title}</h2><p>${emptyCopy.body}</p>${state.reviewFilter === "unlearned" ? "" : `<button class="primary small-button" type="button" id="goStudy">去今日学习</button>`}</div>`}</div>

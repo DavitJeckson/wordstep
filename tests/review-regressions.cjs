@@ -590,12 +590,16 @@ test('quick lookup is rendered as native buttons and keeps the headword highligh
   const word = a.normalizeWords([{ word: 'e-mail', examples: [{ en: 'Use e-mail & <example>.' }],
     phrases: [{ en: 'send e-mail' }], synonyms: ['e-mail', 'be', 'contact'], etymology: { cognates: ['mailing'] } }])[0];
   for (const markup of [a.wordDetailHTML(word, true), a.reviewDetailHTML(word, true)]) {
-    assert.match(markup, /<strong style="color:var\(--indigo\)">e-mail<\/strong>/);
+    assert.match(markup, /<strong style="color:var\(--accent\)">e-mail<\/strong>/);
     for (const term of ['Use', 'contact', 'mailing']) {
       assert.match(markup, new RegExp('<button class="lookup-word" type="button" data-lookup-word="' + term + '">'));
     }
     assert.doesNotMatch(markup, /data-lookup-word="(?:e-mail|be)"|<example>/);
     assert.match(markup, /data-tts-text="Use e-mail &amp; &lt;example&gt;\."/);
+    for (const type of ['phrase-item', 'example']) {
+      const entry = markup.slice(markup.indexOf('<div class="' + type + '">'));
+      assert.match(entry, /^<div[^>]+><button[^>]+data-tts-text[^>]+><svg[^>]+><use class="audio-speaker" href="#icon-audio-speaker"/);
+    }
   }
 });
 

@@ -2025,7 +2025,7 @@
 
     function wordDetailHTML(word, enableLookup = false) {
       const examples = word.examples.map(item => bilingualItemHTML(item, word, "example", enableLookup)).join("");
-      return `<div class="word-detail"><p class="meaning">${enableLookup ? makeWordLookupable(word.meaning, word.word) : esc(word.meaning)}</p></div>
+      return `<div class="word-detail"><p class="meaning">${enableLookup ? makeWordLookupable(word.meaning, word.word, { skipPosAbbreviations: true }) : esc(word.meaning)}</p></div>
         ${analysisHTML(word.analysis, enableLookup, word.word)}
         ${phraseSectionHTML(word, false, enableLookup)}
         <details class="info-section" open><summary>例句 · ${word.examples.length}</summary><div class="detail-body">${examples}</div></details>
@@ -2277,9 +2277,34 @@
       return `<button class="lookup-word" type="button" data-lookup-word="${esc(word)}">${esc(word)}</button>`;
     }
 
-    function makeWordLookupable(text, excludeWord = "") {
-      const renderText = value => value.split(/(\p{Script=Latin}+(?:[-'’]\p{Script=Latin}+)*)/u)
-        .map((part, index) => index % 2 ? lookupTermHTML(part, excludeWord) : esc(part)).join("");
+    const POS_ABBREVIATIONS = new Set([
+      "adj", "adv", "prep", "conj", "pron", "pronoun", "num", "art",
+      "int", "inter", "interj", "aux", "det", "abbr", "comb",
+      "excl", "exclam", "phr", "phrase", "pref", "suff", "modal",
+      "link", "sing", "plur", "pred", "attrib", "sym", "symb", "idiom", "contr"
+    ]);
+
+    function isPosAbbreviation(parts, index) {
+      const token = parts[index].toLowerCase();
+      if (!POS_ABBREVIATIONS.has(token)) return false;
+      const next = parts[index + 1] ?? "";
+      if (next.startsWith(".")) return true;
+      if (next === "/" && index + 2 < parts.length) {
+        const after = parts[index + 2].toLowerCase();
+        if ((POS_ABBREVIATIONS.has(after) || /^(?:n|v|vi|vt)$/i.test(after)) && (parts[index + 3] ?? "").startsWith(".")) return true;
+      }
+      return /^[ \t]+$/.test(next) && /^(?:v|vi|vt|n|adj|adv)$/i.test(parts[index + 2] ?? "") && (parts[index + 3] ?? "").startsWith(".");
+    }
+
+    function makeWordLookupable(text, excludeWord = "", options = {}) {
+      const renderText = value => {
+        const parts = value.split(/(\p{Script=Latin}+(?:[-'’]\p{Script=Latin}+)*)/u);
+        return parts.map((part, index) => {
+          if (index % 2 === 0) return esc(part);
+          if (options.skipPosAbbreviations && isPosAbbreviation(parts, index)) return esc(part);
+          return lookupTermHTML(part, excludeWord);
+        }).join("");
+      };
       return highlightWord(text, excludeWord, renderText);
     }
 

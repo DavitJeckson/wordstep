@@ -753,3 +753,21 @@ test('daily complete places lookup above compact summary and keeps word flash ac
   await a.document.querySelector('#viewStats').listeners.click();
   assert.equal(a.state.tab, 'stats');
 });
+
+test('meaning skips lookup links on part-of-speech abbreviations while keeping regular English words lookupable', () => {
+  const a = app();
+  const word = a.normalizeWords([{
+    word: 'fast',
+    meaning: 'adj. 快的；adv. 迅速地；prep. 靠近；conj. 尽管；pron. 某物；det. 任何；aux. 助动词；art. 冠词；comb. 构词；int. 感叹；interj. 叹词；abbr. 缩写；modal v. 应该；adj/adv. 两用；n. 作品（work of art，hair comb）'
+  }])[0];
+  const markup = a.wordDetailHTML(word, true);
+  const meaningMarkup = markup.match(/<p class="meaning">([\s\S]*?)<\/p>/)[1];
+  for (const pos of ['adj', 'adv', 'prep', 'conj', 'pron', 'det', 'aux', 'int', 'interj', 'abbr', 'modal']) {
+    assert.doesNotMatch(meaningMarkup, new RegExp(`data-lookup-word="${pos}"`, 'i'));
+  }
+  assert.match(meaningMarkup, /；art\. 冠词/);
+  assert.match(meaningMarkup, /；comb\. 构词/);
+  assert.match(meaningMarkup, /data-lookup-word="work"/);
+  assert.match(meaningMarkup, /data-lookup-word="art"/);
+  assert.match(meaningMarkup, /data-lookup-word="comb"/);
+});

@@ -137,12 +137,13 @@ test('normalization repairs null children, preserves supplied IDs and avoids all
   assert.throws(() => a.normalizeWords([{ word: 42 }]));
 });
 
-test('all bundled books normalize without changing IDs; metadata counts agree with files', () => {
+test('all bundled books normalize without changing IDs; metadata counts and versions agree with files', () => {
   const a = app();
   for (const book of a.BUNDLED_BOOKS) {
     const raw = JSON.parse(fs.readFileSync(path.join(root, book.url), 'utf8'));
     const normalized = a.withBundledMetadata(raw, book);
     assert.equal(normalized.wordCount, book.wordCount, book.id);
+    assert.equal(book.version, raw.version, book.id);
     assert.deepEqual(Array.from(normalized.words, w => w.id), raw.words.map(w => w.id));
   }
 });
@@ -178,6 +179,20 @@ test('choice and spelling answers commit together with word statistics', async (
   await a.answerSpelling('alpha');
   assert.equal(a.tables.sessions.get('today').quizCorrect, 2);
   assert.equal(a.tables.progress.get('test:a').correct, 2);
+});
+
+test('answered spelling shows phonetics above the input once and keeps answer feedback', async () => {
+  for (const [answer, feedback] of [['alpha', /拼写正确/], ['wrong', /正确拼写是 <b>alpha<\/b><br>你的答案：wrong/]]) {
+    const a = app();
+    a.state.book.words[0].phonetic = '/ˈælfə/';
+    a.state.session = a.normalizeSession({ id: 'today', bookId: 'test', stage: 'quiz', quizMode: 'spelling', newIds: ['a'], quizQueue: ['a'] });
+    a.state.flowOpen = true;
+    await a.answerSpelling(answer);
+    const markup = a.document.querySelector('#studyView').innerHTML;
+    assert.match(markup, /class="spelling-hint spelling-meta"[\s\S]*?class="phonetic-list compact"[\s\S]*?<form class="spelling-form"/);
+    assert.equal((markup.match(/class="phonetic-list compact"/g) || []).length, 1);
+    assert.match(markup.match(/<div class="spelling-answer">([\s\S]*?)<\/div>/)[1], feedback);
+  }
 });
 
 test('failed answer transaction rolls back both stores and permits a retry', async () => {

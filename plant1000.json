@@ -2,7 +2,7 @@
   "id": "plant1000",
   "name": "Plant 1000",
   "description": "植物类主题词汇 1000 · 含花卉、树木、蔬果、药用植物百科解析（门、科、属、形态、分布、典故与特性）、选择性花语与例句",
-  "version": "2026.07.25.6",
+  "version": "2026.11.27.1",
   "builtin": true,
   "audioEncoding": "base64-mp3",
   "schemaVersion": 2,
@@ -137,7 +137,7 @@
       "phonetic": "英 / jæm /\n美 / jæm /",
       "audioBase64": "",
       "partOfSpeech": "n.",
-      "meaning": "n. 薯蓣，山药；〈北美〉番薯，山芋；vi. <爱尔兰，苏格兰>猫叫",
+      "meaning": "n. 薯蓣，山药；〈北美〉番薯，山芋；\nvi. <爱尔兰，苏格兰>猫叫",
       "phrases": [
         {
           "en": "yam extract",
@@ -323,7 +323,7 @@
       "phonetic": "英 / raɪs /\n美 / raɪs /",
       "audioBase64": "",
       "partOfSpeech": "n.",
-      "meaning": "n. 稻；米饭；vt. 把……捣成米糊状；n. 赖斯",
+      "meaning": "n. 稻；米饭；\nvt. 把……捣成米糊状；\nn. 赖斯",
       "phrases": [
         {
           "en": "rice extract",
@@ -5779,7 +5779,7 @@
       "phonetic": "英 / ˈpɒpi /\n美 / ˈpɑːpi /",
       "audioBase64": "",
       "partOfSpeech": "n.",
-      "meaning": "n. 罂粟花；罂粟；深红色；adj. 罂粟科的",
+      "meaning": "n. 罂粟花；罂粟；深红色；\nadj. 罂粟科的",
       "phrases": [
         {
           "en": "poppy extract",
@@ -6337,7 +6337,7 @@
       "phonetic": "英 / hiːθ /\n美 / hiːθ /",
       "audioBase64": "",
       "partOfSpeech": "n.",
-      "meaning": "n. 石南，石南；荒野；adj. 杜鹃花科木本的；n. 希思",
+      "meaning": "n. 石南，石南；荒野；\nadj. 杜鹃花科木本的；\nn. 希思",
       "phrases": [
         {
           "en": "heath extract",
@@ -9251,7 +9251,7 @@
       "phonetic": "英 / ˈkɒtn /\n美 / ˈkɑːt(ə)n /",
       "audioBase64": "",
       "partOfSpeech": "n.",
-      "meaning": "n. 棉，棉花；棉布；棉线，棉纱；脱脂棉，药棉；adj. 棉的，棉制的；v. <非正式>开始领会，开始明白；<美，非正式>喜爱，喜欢；【名】",
+      "meaning": "n. 棉，棉花；棉布；棉线，棉纱；脱脂棉，药棉；\nadj. 棉的，棉制的；\nv. <非正式>开始领会，开始明白；<美，非正式>喜爱，喜欢；【名】",
       "phrases": [
         {
           "en": "cotton extract",
@@ -11359,7 +11359,7 @@
       "phonetic": "英 / ruː /\n美 / ruː /",
       "audioBase64": "",
       "partOfSpeech": "n.",
-      "meaning": "v. 懊恼，后悔；悲伤；n. 后悔，悔恨；同情，怜悯；芸香；芸香科；n.",
+      "meaning": "v. 懊恼，后悔；悲伤；\nn. 后悔，悔恨；同情，怜悯；芸香；芸香科；n.",
       "phrases": [
         {
           "en": "rue extract",
@@ -11483,7 +11483,7 @@
       "phonetic": "英 / biːtʃ /\n美 / biːtʃ /",
       "audioBase64": "",
       "partOfSpeech": "n.",
-      "meaning": "n. 山毛榉；adj. 山毛榉木材的；n. 比奇",
+      "meaning": "n. 山毛榉；\nadj. 山毛榉木材的；\nn. 比奇",
       "phrases": [
         {
           "en": "beech extract",
@@ -12785,7 +12785,7 @@
       "phonetic": "英 / ˈpaɪnæp(ə)l /\n美 / ˈpaɪnæp(ə)l /",
       "audioBase64": "",
       "partOfSpeech": "n.",
-      "meaning": "n. [园艺] 菠萝；[园艺] 凤梨；adj. 凤梨科的",
+      "meaning": "n. [园艺] 菠萝；[园艺] 凤梨；\nadj. 凤梨科的",
       "phrases": [
         {
           "en": "pineapple extract",
@@ -13157,7 +13157,7 @@
       "phonetic": "英 / ˈkæʃuː /\n美 / ˈkæʃuː /",
       "audioBase64": "",
       "partOfSpeech": "n.",
-      "meaning": "n. 腰果；腰果树；adj. 漆树科的",
+      "meaning": "n. 腰果；腰果树；\nadj. 漆树科的",
       "phrases": [
         {
           "en": "cashew extract",
@@ -14769,7 +14769,7 @@
       "phonetic": "英 / ˈpæʃ(ə)nˌflaʊə(r) /\n美 / ˈpæʃənˌflaʊər /",
       "audioBase64": "",
       "partOfSpeech": "n.",
-      "meaning": "n. 西番莲；西番莲；adj. 西番莲科的",
+      "meaning": "n. 西番莲；西番莲；\nadj. 西番莲科的",
       "phrases": [
         {
           "en": "passionflower extract",
@@ -15637,7 +15637,7 @@
       "phonetic": "英 / ˈhʌnisʌkl /\n美 / ˈhʌnisʌkl /",
       "audioBase64": "",
       "partOfSpeech": "n.",
-      "meaning": "n. [植] 金银花；忍冬；忍冬；adj. 忍冬的",
+      "meaning": "n. [植] 金银花；忍冬；忍冬；\nadj. 忍冬的",
       "phrases": [
         {
           "en": "honeysuckle extract",
@@ -16195,7 +16195,7 @@
       "phonetic": "英 / ˈdæmzn /\n美 / ˈdæmzn /",
       "audioBase64": "",
       "partOfSpeech": "n.",
-      "meaning": "n. 西洋李子；黑紫色；adj. 黑紫色的；n. 达姆森",
+      "meaning": "n. 西洋李子；黑紫色；\nadj. 黑紫色的；\nn. 达姆森",
       "phrases": [
         {
           "en": "damson extract",
@@ -16939,7 +16939,7 @@
       "phonetic": "英 / ˈdɒɡwʊd /\n美 / ˈdɔːɡwʊd /",
       "audioBase64": "",
       "partOfSpeech": "n.",
-      "meaning": "n. 山茱萸；adj. 山茱萸科的；淡黄褐色的",
+      "meaning": "n. 山茱萸；\nadj. 山茱萸科的；淡黄褐色的",
       "phrases": [
         {
           "en": "dogwood extract",
@@ -19109,7 +19109,7 @@
       "phonetic": "英 / spruːs /\n美 / spruːs /",
       "audioBase64": "",
       "partOfSpeech": "n.",
-      "meaning": "n. vi. 打扮整齐；使显干净；adj. 整洁的；vt. 打扮整齐；n. 云杉",
+      "meaning": "n. vi. 打扮整齐；使显干净；\nadj. 整洁的；\nvt. 打扮整齐；\nn. 云杉",
       "phrases": [
         {
           "en": "spruce extract",
@@ -19667,7 +19667,7 @@
       "phonetic": "英 / ˌævəˈkɑːdəʊ /\n美 / ˌævəˈkɑːdoʊ /",
       "audioBase64": "",
       "partOfSpeech": "n.",
-      "meaning": "n. 鳄梨，牛油果；鳄梨色；鳄梨树；adj. 淡绿色的",
+      "meaning": "n. 鳄梨，牛油果；鳄梨色；鳄梨树；\nadj. 淡绿色的",
       "phrases": [
         {
           "en": "avocado extract",
@@ -19853,7 +19853,7 @@
       "phonetic": "英 / ˈəʊbəʒiːn /\n美 / ˈoʊbərʒiːn /",
       "audioBase64": "",
       "partOfSpeech": "n.",
-      "meaning": "n. 茄子；紫红色；adj. 紫红色的",
+      "meaning": "n. 茄子；紫红色；\nadj. 紫红色的",
       "phrases": [
         {
           "en": "aubergine extract",
@@ -21217,7 +21217,7 @@
       "phonetic": "英 / ˈkɒləmbaɪn /\n美 / ˈkɑːləmbaɪn /",
       "audioBase64": "",
       "partOfSpeech": "n.",
-      "meaning": "n. 耧斗菜，蓝花耧斗菜；科隆比纳；耧斗菜属，毛茛科；adj. 鸽的；似鸽的；鸽色的",
+      "meaning": "n. 耧斗菜，蓝花耧斗菜；科隆比纳；耧斗菜属，毛茛科；\nadj. 鸽的；似鸽的；鸽色的",
       "phrases": [
         {
           "en": "columbine extract",
@@ -21341,7 +21341,7 @@
       "phonetic": "英 / ˈrɒkˌrəʊz /\n美 / ˈrɑːkˌroʊz /",
       "audioBase64": "",
       "partOfSpeech": "n.",
-      "meaning": "n. 岩蔷薇；半日花属；adj. 半日花科的",
+      "meaning": "n. 岩蔷薇；半日花属；\nadj. 半日花科的",
       "phrases": [
         {
           "en": "rockrose extract",
@@ -23639,7 +23639,7 @@
       "phonetic": "英 / ˈprɪmrəʊz /\n美 / ˈprɪmrəʊz /",
       "audioBase64": "",
       "partOfSpeech": "n.",
-      "meaning": "n. 报春花；欧洲樱草；淡黄色；樱草色；最佳部分；adj. 樱草的；淡黄色的；樱草色的；令人愉快的；n.",
+      "meaning": "n. 报春花；欧洲樱草；淡黄色；樱草色；最佳部分；\nadj. 樱草的；淡黄色的；樱草色的；令人愉快的；\nn.",
       "phrases": [
         {
           "en": "primrose extract",
@@ -24321,7 +24321,7 @@
       "phonetic": "英 / ˈɒrɪndʒ /\n美 / ˈɔːrɪndʒ /",
       "audioBase64": "",
       "partOfSpeech": "n.",
-      "meaning": "n. 橙，柑橘；橙汁，橘汁饮料；橙树，橘树；橙色，橘黄色；橙黄色蝴蝶；adj. 橙红色的，橘黄色的；奥兰治党或社团的；n.",
+      "meaning": "n. 橙，柑橘；橙汁，橘汁饮料；橙树，橘树；橙色，橘黄色；橙黄色蝴蝶；\nadj. 橙红色的，橘黄色的；奥兰治党或社团的；\nn.",
       "phrases": [
         {
           "en": "orange extract",
@@ -26615,7 +26615,7 @@
       "phonetic": "英 / ˈtʃeri /\n美 / ˈtʃeri /",
       "audioBase64": "",
       "partOfSpeech": "n.",
-      "meaning": "n. 樱桃；樱桃树；樱桃木；樱桃色，鲜红色；果实与樱桃相似的；<非正式>童贞；adj. 樱桃色的，鲜红色的；【名】",
+      "meaning": "n. 樱桃；樱桃树；樱桃木；樱桃色，鲜红色；果实与樱桃相似的；<非正式>童贞；\nadj. 樱桃色的，鲜红色的；【名】",
       "phrases": [
         {
           "en": "cherry extract",
@@ -27731,7 +27731,7 @@
       "phonetic": "英 / ˈpænzi /\n美 / ˈpænzi /",
       "audioBase64": "",
       "partOfSpeech": "n.",
-      "meaning": "n. [园艺] 三色堇；同性恋男子；三色紫罗兰；vt. 打扮；vi. 打扮；adj. 女性化的；搞同性恋的；爱打扮的",
+      "meaning": "n. [园艺] 三色堇；同性恋男子；三色紫罗兰；\nvt. 打扮；\nvi. 打扮；\nadj. 女性化的；搞同性恋的；爱打扮的",
       "phrases": [
         {
           "en": "pansy extract",
@@ -28909,7 +28909,7 @@
       "phonetic": "英 / biːt /\n美 / biːt /",
       "audioBase64": "",
       "partOfSpeech": "n.",
-      "meaning": "n. 甜菜；甜菜根；vt. 生火；修理；改过",
+      "meaning": "n. 甜菜；甜菜根；\nvt. 生火；修理；改过",
       "phrases": [
         {
           "en": "beet extract",
@@ -30397,7 +30397,7 @@
       "phonetic": "英 / ˈtʃesnʌt /\n美 / ˈtʃesnʌt /",
       "audioBase64": "",
       "partOfSpeech": "n.",
-      "meaning": "n. 栗子；栗色；[园艺]栗树；栗色马；adj. 栗色的；n. 切斯特纳特",
+      "meaning": "n. 栗子；栗色；[园艺]栗树；栗色马；\nadj. 栗色的；\nn. 切斯特纳特",
       "phrases": [
         {
           "en": "chestnut extract",
@@ -32567,7 +32567,7 @@
       "phonetic": "英 / ˈluːsˌstraɪf /\n美 / ˈluːsˌstraɪf /",
       "audioBase64": "",
       "partOfSpeech": "n.",
-      "meaning": "n. 珍珠菜；adj. 千屈科的",
+      "meaning": "n. 珍珠菜；\nadj. 千屈科的",
       "phrases": [
         {
           "en": "loosestrife extract",
@@ -34985,7 +34985,7 @@
       "phonetic": "英 / ˈbʊlrʌʃ /\n美 / ˈbʊlrʌʃ /",
       "audioBase64": "",
       "partOfSpeech": "n.",
-      "meaning": "n. 芦苇；灯心草；vt. 防御",
+      "meaning": "n. 芦苇；灯心草；\nvt. 防御",
       "phrases": [
         {
           "en": "bulrush extract",
@@ -36411,7 +36411,7 @@
       "phonetic": "英 / elm /\n美 / elm /",
       "audioBase64": "",
       "partOfSpeech": "n.",
-      "meaning": "n. [林] 榆树；榆木；adj. 榆树的；榆木的；n.",
+      "meaning": "n. [林] 榆树；榆木；\nadj. 榆树的；榆木的；\nn.",
       "phrases": [
         {
           "en": "elm extract",
@@ -36473,7 +36473,7 @@
       "phonetic": "英 / ˈaɪvi /\n美 / ˈaɪvi /",
       "audioBase64": "",
       "partOfSpeech": "n.",
-      "meaning": "n. 常青藤；用于类似的攀缘的名称中；adj. 常春藤联盟的；【名】",
+      "meaning": "n. 常青藤；用于类似的攀缘的名称中；\nadj. 常春藤联盟的；【名】",
       "phrases": [
         {
           "en": "ivy extract",
@@ -37899,7 +37899,7 @@
       "phonetic": "英 / bɜːtʃ /\n美 / bɜːrtʃ /",
       "audioBase64": "",
       "partOfSpeech": "n.",
-      "meaning": "n. 桦木；桦树；桦条；vt. 用桦条鞭打；n. 比尔克",
+      "meaning": "n. 桦木；桦树；桦条；\nvt. 用桦条鞭打；\nn. 比尔克",
       "phrases": [
         {
           "en": "birch extract",
@@ -39015,7 +39015,7 @@
       "phonetic": "英 / ˈeldə(r) /\n美 / ˈeldər /",
       "audioBase64": "",
       "partOfSpeech": "n.",
-      "meaning": "adj. 年龄较大的；资格老的；n. 长者，长辈；元老，长老；接骨木；【名】",
+      "meaning": "adj. 年龄较大的；资格老的；\nn. 长者，长辈；元老，长老；接骨木；【名】",
       "phrases": [
         {
           "en": "elder extract",
@@ -39449,7 +39449,7 @@
       "phonetic": "英 / ˈluːpaɪn /\n美 / ˈluːpaɪn /",
       "audioBase64": "",
       "partOfSpeech": "n.",
-      "meaning": "n. 羽扇豆；adj. 狼似的；狼的",
+      "meaning": "n. 羽扇豆；\nadj. 狼似的；狼的",
       "phrases": [
         {
           "en": "lupine extract",
@@ -40503,7 +40503,7 @@
       "phonetic": "英 / ˈdæfədɪl /\n美 / ˈdæfədɪl /",
       "audioBase64": "",
       "partOfSpeech": "n.",
-      "meaning": "n. 水仙花；adj. 水仙花色的；【名】",
+      "meaning": "n. 水仙花；\nadj. 水仙花色的；【名】",
       "phrases": [
         {
           "en": "daffodil extract",
@@ -40627,7 +40627,7 @@
       "phonetic": "英 / ˈblækbəri /\n美 / ˈblækberi /",
       "audioBase64": "",
       "partOfSpeech": "n.",
-      "meaning": "n. 黑莓；vi. 采黑莓",
+      "meaning": "n. 黑莓；\nvi. 采黑莓",
       "phrases": [
         {
           "en": "blackberry extract",
@@ -43045,7 +43045,7 @@
       "phonetic": "英 / fɜː(r) /\n美 / fɜːr /",
       "audioBase64": "",
       "partOfSpeech": "n.",
-      "meaning": "n. 冷杉；枞木；abbr. 弗京菲尔",
+      "meaning": "n. 冷杉；枞木；\nabbr. 弗京菲尔",
       "phrases": [
         {
           "en": "fir extract",
@@ -43107,7 +43107,7 @@
       "phonetic": "英 / plʌm /\n美 / plʌm /",
       "audioBase64": "",
       "partOfSpeech": "n.",
-      "meaning": "n. 李子，李树；紫红色，李子色；<非正式>令人垂涎之物；adj. 称心的，值得拥有的；紫红色的，李子色的；adv. <美，非正式>正好地，准确地；【名】",
+      "meaning": "n. 李子，李树；紫红色，李子色；<非正式>令人垂涎之物；\nadj. 称心的，值得拥有的；紫红色的，李子色的；\nadv. <美，非正式>正好地，准确地；【名】",
       "phrases": [
         {
           "en": "plum extract",
@@ -44285,7 +44285,7 @@
       "phonetic": "英 / ˈmɜːtl /\n美 / ˈmɜːrtl /",
       "audioBase64": "",
       "partOfSpeech": "n.",
-      "meaning": "n. 桃金娘；桃金娘科；adj. 桃金娘科的",
+      "meaning": "n. 桃金娘；桃金娘科；\nadj. 桃金娘科的",
       "phrases": [
         {
           "en": "myrtle extract",
@@ -45463,7 +45463,7 @@
       "phonetic": "英 / mɪnt /\n美 / mɪnt /",
       "audioBase64": "",
       "partOfSpeech": "n.",
-      "meaning": "n. 薄荷；薄荷糖；铸币厂；巨款；v. 铸造",
+      "meaning": "n. 薄荷；薄荷糖；铸币厂；巨款；\nv. 铸造",
       "phrases": [
         {
           "en": "mint extract",
@@ -46517,7 +46517,7 @@
       "phonetic": "英 / ˈbʌkwiːt /\n美 / ˈbʌkwiːt /",
       "audioBase64": "",
       "partOfSpeech": "n.",
-      "meaning": "n. 荞麦；荞麦粉；荞麦片；adj. 蓼科的",
+      "meaning": "n. 荞麦；荞麦粉；荞麦片；\nadj. 蓼科的",
       "phrases": [
         {
           "en": "buckwheat extract",
@@ -46641,7 +46641,7 @@
       "phonetic": "英 / kɑːˈneɪʃn /\n美 / kɑːrˈneɪʃn /",
       "audioBase64": "",
       "partOfSpeech": "n.",
-      "meaning": "n. 香石竹，康乃馨；肉红色，粉红色；adj. 肉红色的",
+      "meaning": "n. 香石竹，康乃馨；肉红色，粉红色；\nadj. 肉红色的",
       "phrases": [
         {
           "en": "carnation extract",
@@ -47819,7 +47819,7 @@
       "phonetic": "英 / ˈlaɪlək /\n美 / ˈlaɪlək /",
       "audioBase64": "",
       "partOfSpeech": "n.",
-      "meaning": "n. 淡紫色；丁香花；[植]紫丁香；adj. 淡紫色的；n. 莱拉克",
+      "meaning": "n. 淡紫色；丁香花；[植]紫丁香；\nadj. 淡紫色的；\nn. 莱拉克",
       "phrases": [
         {
           "en": "lilac extract",
@@ -49741,7 +49741,7 @@
       "phonetic": "英 / ˈebəni /\n美 / ˈebəni /",
       "audioBase64": "",
       "partOfSpeech": "n.",
-      "meaning": "n. 乌木，黑檀；乌黑色；adj. 乌木制的，黑檀木制的；乌黑色的；n.",
+      "meaning": "n. 乌木，黑檀；乌黑色；\nadj. 乌木制的，黑檀木制的；乌黑色的；\nn.",
       "phrases": [
         {
           "en": "ebony extract",
@@ -50547,7 +50547,7 @@
       "phonetic": "英 / ˈbʌtəkʌp /\n美 / ˈbʌtərkʌp /",
       "audioBase64": "",
       "partOfSpeech": "n.",
-      "meaning": "n. 毛茛；adj. 毛茛的；n. 芭特卡普",
+      "meaning": "n. 毛茛；\nadj. 毛茛的；\nn. 芭特卡普",
       "phrases": [
         {
           "en": "buttercup extract",
@@ -53523,7 +53523,7 @@
       "phonetic": "英 / bəˈnɑːnə /\n美 / bəˈnænə /",
       "audioBase64": "",
       "partOfSpeech": "n.",
-      "meaning": "n. 香蕉；香蕉树；adj. 愚蠢的，发狂的；n.",
+      "meaning": "n. 香蕉；香蕉树；\nadj. 愚蠢的，发狂的；\nn.",
       "phrases": [
         {
           "en": "banana extract",
@@ -54267,7 +54267,7 @@
       "phonetic": "英 / ˈlɪndən /\n美 / ˈlɪndən /",
       "audioBase64": "",
       "partOfSpeech": "n.",
-      "meaning": "n. 椴；菩提树；adj. 椴科的；n. 林登",
+      "meaning": "n. 椴；菩提树；\nadj. 椴科的；\nn. 林登",
       "phrases": [
         {
           "en": "linden extract",
@@ -56995,7 +56995,7 @@
       "phonetic": "英 / ˈvaɪələt /\n美 / ˈvaɪələt /",
       "audioBase64": "",
       "partOfSpeech": "n.",
-      "meaning": "n. 紫罗兰，堇菜；蓝紫色，紫罗兰色；adj. 紫色的，紫罗兰色的；【名】",
+      "meaning": "n. 紫罗兰，堇菜；蓝紫色，紫罗兰色；\nadj. 紫色的，紫罗兰色的；【名】",
       "phrases": [
         {
           "en": "violet extract",
@@ -58235,7 +58235,7 @@
       "phonetic": "英 / raɪ /\n美 / raɪ /",
       "audioBase64": "",
       "partOfSpeech": "n.",
-      "meaning": "n. 黑麦；吉卜赛绅士；adj. 用黑麦制成的；n. 赖伊",
+      "meaning": "n. 黑麦；吉卜赛绅士；\nadj. 用黑麦制成的；\nn. 赖伊",
       "phrases": [
         {
           "en": "rye extract",
@@ -58731,7 +58731,7 @@
       "phonetic": "英 / ˈspɪnɪtʃ /\n美 / ˈspɪnɪtʃ /",
       "audioBase64": "",
       "partOfSpeech": "n.",
-      "meaning": "n. 菠菜；adj. <非正式>未必很有趣但有益的",
+      "meaning": "n. 菠菜；\nadj. <非正式>未必很有趣但有益的",
       "phrases": [
         {
           "en": "spinach extract",
@@ -60963,7 +60963,7 @@
       "phonetic": "英 / ˈtjuːbəˌrəʊz /\n美 / ˈtuːbˌroʊz; ˈtjuːbˌroʊz /",
       "audioBase64": "",
       "partOfSpeech": "n.",
-      "meaning": "n. [园艺] 晚香玉；adj. 块茎状的；有结节的",
+      "meaning": "n. [园艺] 晚香玉；\nadj. 块茎状的；有结节的",
       "phrases": [
         {
           "en": "tuberose extract",

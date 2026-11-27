@@ -477,16 +477,13 @@
     .bilingual-copy .word-highlight { color: var(--accent-dark); }
     .phrase-item p { font-weight: 650; }
     .tts-btn { align-items: flex-start; padding-top: 8px; }
-    .etymology-card { color: var(--ink); font-size: 14px; line-height: 1.7; overflow-wrap: anywhere; }
-    .etymology-card p { margin: 0 0 8px; }
-    .etymology-card p:last-child { margin-bottom: 0; }
-    .etymology-card b { color: var(--accent-dark); }
+    .etymology-card, .chip-list { color: var(--ink); font-size: 14px; line-height: 1.7; overflow-wrap: anywhere; }
+    .etymology-card p, .chip-list p { margin: 0 0 8px; }
+    .etymology-card p:last-child, .chip-list p:last-child { margin-bottom: 0; }
+    .etymology-card b, .chip-list b { color: var(--accent-dark); }
     .word-family { display: flex; flex-wrap: wrap; gap: 5px 12px; margin-top: 6px; }
     .family-word { color: var(--muted); }
     .family-word b { color: var(--accent); }
-    .chip-list { display: flex; flex-wrap: wrap; gap: 5px 12px; }
-    .chip { max-width: 100%; color: var(--muted); font-size: 13px; overflow-wrap: anywhere; }
-    .chip b { color: var(--accent); }
 
     .actions {
       position: sticky;
@@ -820,6 +817,7 @@
     .review-tag.spelling { background: var(--red-soft); color: #ad2c42; }
     .review-tag.fuzzy { background: var(--coral-soft); color: #ae452d; }
     .review-detail { margin: 0 0 14px var(--section-indent); padding-inline-start: 10px; border-inline-start: 1px solid var(--guide); }
+    .review-detail .chip-list:not(:empty) { margin: 10px 0; }
     .review-detail .analysis-details { margin-bottom: 14px; }
     .review-detail .analysis-details .detail-body { margin-inline-start: 0; padding-inline-start: 0; border-inline-start: 0; }
     .review-result-count { color: var(--muted); font-size: 12px; font-weight: 650; }
@@ -1937,7 +1935,7 @@
     }
 
     function chipsHTML(terms, headword, enableLookup) {
-      return terms.map(item => `<span class="chip">${relatedTermHTML(item.word, headword, enableLookup)}${item.note ? ` · ${esc(item.note)}` : ""}</span>`).join("");
+      return terms.map(item => `<p class="chip">${relatedTermHTML(item.word, headword, enableLookup)}${item.note ? ` · ${esc(item.note)}` : ""}</p>`).join("");
     }
 
     function etymologySectionHTML(word, compact = false, enableLookup = false) {
@@ -2029,8 +2027,8 @@
         ${analysisHTML(word.analysis, enableLookup, word.word)}
         ${phraseSectionHTML(word, false, enableLookup)}
         <details class="info-section" open><summary>例句 · ${word.examples.length}</summary><div class="detail-body">${examples}</div></details>
-        <details class="info-section" open><summary>近义词</summary><div class="detail-body"><div class="chip-list">${chipsHTML(word.synonyms, word.word, enableLookup) || "暂无"}</div></div></details>
-        <details class="info-section" open><summary>形似与易混词</summary><div class="detail-body"><div class="chip-list">${chipsHTML(word.confusables, word.word, enableLookup) || "暂无"}</div></div></details>
+        <details class="info-section" open><summary>近义词</summary><div class="detail-body"><div class="chip-list">${chipsHTML(word.synonyms, word.word, enableLookup) || `<span class="sub">暂无</span>`}</div></div></details>
+        <details class="info-section" open><summary>形似与易混词</summary><div class="detail-body"><div class="chip-list">${chipsHTML(word.confusables, word.word, enableLookup) || `<span class="sub">暂无</span>`}</div></div></details>
         ${etymologySectionHTML(word, false, enableLookup)}`;
     }
 
